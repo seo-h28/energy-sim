@@ -14,6 +14,7 @@ import { renderUsagePanel } from "./usage-panel.js";
 import { renderResultCards, renderRangeBoxes, renderResultPlaceholder } from "./result-cards.js";
 import { initTabs } from "./tabs.js";
 import { createQuickControls } from "./quick-controls.js";
+import { renderBalance } from "./balance.js";
 import { createCashflowChart } from "./chart.js";
 import { createMonthlyChart } from "./monthly-chart.js";
 import { createCapacityCurve } from "./capacity-curve.js";
@@ -37,6 +38,7 @@ function timed(label, fn) {
 const inputPanel = document.getElementById("input-panel");
 const resultPanel = document.getElementById("result-panel");
 const rangePanel = document.getElementById("range-panel");
+const balancePanel = document.getElementById("balance-panel");
 const errorBox = document.getElementById("errors");
 const panel = document.getElementById("assumptions-panel");
 
@@ -159,6 +161,7 @@ try {
     if (errors.length) {
       renderResultPlaceholder(resultPanel);
       rangePanel.replaceChildren();
+      balancePanel.hidden = true;
       cancelHeavy();
       cashChart.hide();
       monthlyChart.hide();
@@ -172,6 +175,7 @@ try {
     const base = range.base;
     timed("결과 카드", () => renderResultCards(resultPanel, input, range, countAssumed(state.values, data, state.usageIsExample)));
     timed("범위 표", () => renderRangeBoxes(rangePanel, input, range));
+    timed("에너지 균형", () => renderBalance(balancePanel, { ...flowTotals(base.year1), usageKwh: state.usage.reduce((a, b) => a + b, 0) }));
     timed("개념도", () => diagram.update(input, flowTotals(base.year1), base.firstYearSavingKrw));
     scheduleHeavy(() => {
       timed("누적 그래프", () =>

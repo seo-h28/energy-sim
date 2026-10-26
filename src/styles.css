@@ -12,6 +12,16 @@
   --warn: #fbbf24;
   --danger: #fca5a5;
   --radius: 16px;
+  /* 그래프·게이지 색: src/ui/theme.js가 --c-* 변수를 읽는다(색을 바꿀 때는 여기만 고친다) */
+  --c-primary: #38bdf8; /* 돈(현금흐름·NPV) */
+  --c-secondary: #38bdf8; /* 발전량 */
+  --c-teal: #34d399; /* 내가 쓰는 몫(자가소비·자급) */
+  --c-neutral: #94a3b8; /* 나머지 */
+  --c-dark: #e2e8f0; /* 0선·강조선·마커 */
+  --c-brown: #a78bfa; /* 상한 점선 등 보조선 */
+  --c-grid: #334155;
+  --c-chart-text: #cbd5e1;
+  --c-panel: #0f172a;
 }
 * { box-sizing: border-box; }
 [hidden] { display: none !important; } /* display: grid 같은 규칙이 hidden 속성을 이기지 않게 */
@@ -45,7 +55,7 @@ main { display: block; }
 .tab-panel { display: grid; gap: 20px; }
 
 /* 카드 모양: 구역마다 같은 바탕·테두리·둥근 모서리 */
-#quick-panel, #chart-panel, #diagram-panel, #tariff-panel, #input-panel, #usage-panel, #monthly-panel, #curve-panel, #assumptions-panel {
+#quick-panel, #chart-panel, #diagram-panel, #balance-panel, #tariff-panel, #input-panel, #usage-panel, #monthly-panel, #curve-panel, #assumptions-panel {
   background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 22px;
 }
 .section-head { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin-bottom: 14px; }
@@ -210,3 +220,35 @@ table.assumptions details p { margin-top: 6px; color: var(--muted); font-size: 1
 .dg-head-main { fill: var(--accent); }
 .dg-head-export { fill: #a78bfa; }
 @media (prefers-reduced-motion: reduce) { .dg-slot { transition: none; } html { scroll-behavior: auto; } }
+
+/* ── 큰 숫자의 단위 ── */
+.card-value .unit { font-size: 0.5em; font-weight: 600; color: var(--muted); margin-left: 3px; }
+
+/* ── 에너지 균형: 반원 게이지 + 알약 막대 ── */
+.balance-body { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr); gap: 28px; align-items: center; }
+.gauge-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.gauge { text-align: center; }
+.gauge-svg { display: block; width: 100%; max-width: 230px; margin: 0 auto; overflow: visible; }
+.gauge-track { fill: none; stroke: var(--c-grid); stroke-width: 16; stroke-linecap: round; }
+.gauge-fill { fill: none; stroke: var(--c-teal); stroke-width: 16; stroke-linecap: round; }
+.gauge-dot { fill: var(--c-panel); stroke: var(--c-teal); stroke-width: 3.5; }
+.gauge-tick { stroke: var(--c-neutral); stroke-width: 1.5; }
+.gauge-scale { fill: var(--muted); font-size: 10px; }
+.gauge-number { fill: var(--text-strong); font-size: 30px; font-weight: 800; font-variant-numeric: tabular-nums; }
+.gauge-unit { font-size: 15px; font-weight: 600; fill: var(--muted); }
+.gauge-label { margin-top: 2px; font-weight: 700; color: var(--text-strong); }
+.gauge-caption { font-size: 13px; color: var(--muted); }
+.pill-col { display: grid; gap: 22px; }
+.pill-title { font-weight: 700; color: var(--text-strong); margin-bottom: 8px; }
+.pill-bar { display: flex; gap: 3px; height: 24px; padding: 3px; background: var(--bg); border: 1px solid var(--border); border-radius: 999px; overflow: hidden; }
+.pill-seg { display: block; min-width: 6px; border-radius: 999px; }
+.seg-primary { background: var(--c-teal); }
+.seg-secondary { background: var(--c-secondary); }
+.seg-neutral { background: var(--c-neutral); }
+.seg-empty { flex: 1; background: transparent; }
+.pill-legend { list-style: none; margin: 10px 0 0; padding: 0; display: flex; flex-wrap: wrap; gap: 4px 18px; font-size: 14px; }
+.pill-legend li { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+.pill-dot { display: inline-block; width: 11px; height: 11px; border-radius: 50%; }
+.pill-pct { color: var(--muted); }
+@media (max-width: 1100px) { .balance-body { grid-template-columns: minmax(0, 1fr); } }
+@media (max-width: 560px) { .gauge-grid { grid-template-columns: minmax(0, 1fr); } #balance-panel { padding: 16px; } }

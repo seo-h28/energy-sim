@@ -2,18 +2,24 @@
 // t=0의 −순 투자비에서 시작해 0선을 넘는 지점(원금 회수 시점, Break-Even)을 표시한다.
 // 회수 시점 표시는 플러그인(chartjs-plugin-annotation) 없이 점 하나 + 글자 한 줄로 그린다(의존성을 늘리지 않으려는 선택).
 // 그래프는 한 번 만들고 입력이 바뀌면 데이터만 바꿔 update()한다.
+import { readTheme, withAlpha } from "./theme.js";
 import { cumulativeFlows } from "../core/finance.js";
 import { el, fmt } from "./dom.js";
 
+const T = readTheme();
 const COLORS = {
-  line: "#38BDF8", // Cyan
-  fillTop: "rgba(56, 189, 248, 0.45)",
-  fillBottom: "rgba(56, 189, 248, 0.03)",
-  grid: "#334155",
-  zero: "#E2E8F0",
-  text: "#CBD5E1",
-  breakEven: "#FBBF24", // Amber: 청록 선과 구분되는 강조색(모양도 마름모로 달리함)
-  panel: "#0F172A",
+  line: T.primary, // 돈(현금흐름): 번트 오렌지
+  fillTop: withAlpha(T.primary, 0.32),
+  fillBottom: withAlpha(T.primary, 0.03),
+  grid: T.grid,
+  zero: T.dark,
+  text: T.text,
+  breakEven: T.teal, // 회수 시점 마름모: 청록(오렌지 선과 구분, 모양도 다르게)
+  label: T.dark, // 글자는 진한 색(밝은 바탕에서 읽기 쉽게)
+  panel: T.panel,
+  low: T.neutral,
+  high: T.brown,
+  tooltipBg: T.panel,
 };
 
 /**
@@ -41,7 +47,7 @@ export function createCashflowChart(container) {
       const { ctx, chartArea } = chart;
       ctx.save();
       ctx.font = "600 15px system-ui, 'Malgun Gothic', sans-serif";
-      ctx.fillStyle = COLORS.breakEven;
+      ctx.fillStyle = COLORS.label;
       ctx.textBaseline = "bottom";
       // 오른쪽 끝에 붙은 점이면 글자가 잘리지 않게 왼쪽으로 정렬한다
       const width = ctx.measureText(breakEvenLabel).width;
@@ -90,8 +96,8 @@ export function createCashflowChart(container) {
           borderWidth: 2,
         },
         // 낮시간 사용 비중 하한·상한의 누적 현금흐름(점선): 기준 선은 두 선 사이의 한 점
-        { label: "낮 비중 하한", data: [], borderColor: "#94A3B8", borderDash: [8, 6], borderWidth: 2, pointRadius: 0, fill: false, tension: 0 },
-        { label: "낮 비중 상한", data: [], borderColor: "#A78BFA", borderDash: [3, 5], borderWidth: 2, pointRadius: 0, fill: false, tension: 0 },
+        { label: "낮 비중 하한", data: [], borderColor: COLORS.low, borderDash: [8, 6], borderWidth: 2, pointRadius: 0, fill: false, tension: 0 },
+        { label: "낮 비중 상한", data: [], borderColor: COLORS.high, borderDash: [3, 5], borderWidth: 2, pointRadius: 0, fill: false, tension: 0 },
       ],
     },
     options: {
@@ -113,7 +119,7 @@ export function createCashflowChart(container) {
       plugins: {
         legend: { labels: { color: COLORS.text, usePointStyle: true } },
         tooltip: {
-          backgroundColor: "#1E293B",
+          backgroundColor: COLORS.tooltipBg,
           borderColor: COLORS.grid,
           borderWidth: 1,
           titleColor: COLORS.text,

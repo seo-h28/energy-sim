@@ -24,6 +24,22 @@ function rangeText(values, format) {
 }
 
 /**
+ * 큰 숫자 + 작은 단위. "2,576,301원"은 숫자 부분을 크게, "원"을 작게. 숫자가 없는 글자("회수 불가")는 그대로.
+ * @param {string} text
+ */
+function bigValue(text) {
+  const p = el("p", { class: "card-value" });
+  const m = /^(-?[\d.,]+)(.*)$/.exec(text);
+  if (!m) {
+    p.textContent = text;
+    return p;
+  }
+  p.append(document.createTextNode(m[1]));
+  if (m[2]) p.append(el("span", { class: "unit" }, m[2]));
+  return p;
+}
+
+/**
  * 카드 하나: 제목 + 큰 숫자 + (있으면) 범위 한 줄 + (접힌) 계산 과정.
  * @param {string} title
  * @param {string} value
@@ -36,7 +52,7 @@ function card(title, value, range, steps) {
   const list = el("ol", { class: "steps" });
   for (const line of steps) list.append(el("li", {}, line));
   proof.append(el("summary", {}, "계산 과정 보기"), list);
-  box.append(el("h3", { class: "card-title" }, title), el("p", { class: "card-value" }, value));
+  box.append(el("h3", { class: "card-title" }, title), bigValue(value));
   if (range) box.append(el("p", { class: "card-range" }, `범위 ${range}`));
   box.append(proof);
   return box;

@@ -1,20 +1,23 @@
 // 용량 곡선(Chart.js): 설치 용량을 바꿔 가며 NPV(하한·기준·상한), 자급률, 자가소비율을 한 그림에 보여 주고,
 // NPV 최대 용량과 포화 용량을 표시한다. 그래프는 한 번 만들고 입력이 바뀌면 데이터만 바꿔 update()한다.
 // 격자는 수십~백 개 점이라 즉시 계산된다(걸린 시간을 화면에 적는다).
+import { readTheme } from "./theme.js";
 import { autoMaxCapacity, bestByNpv, capacityCurve, capacityGrid, evaluateCapacity, niceStep, saturationCapacity } from "../core/optimize.js";
 import { el, fmt } from "./dom.js";
 
+const T = readTheme();
 const COLORS = {
-  npv: "#38BDF8", // 기준 NPV: Cyan
-  low: "#94A3B8", // 하한: 회색 점선
-  high: "#A78BFA", // 상한: 보라 점선
-  suff: "#34D399", // 자급률: 초록(오른쪽 축)
-  selfRate: "#FBBF24", // 자가소비율: 호박색(오른쪽 축)
-  grid: "#334155",
-  text: "#CBD5E1",
-  current: "#E2E8F0",
-  saturation: "#F472B6",
-  panel: "#0F172A",
+  npv: T.primary, // 기준 NPV: 번트 오렌지(돈)
+  low: T.neutral, // 하한: 회색 점선
+  high: T.brown, // 상한: 황갈색 점선
+  suff: T.teal, // 자급률: 청록(오른쪽 축)
+  selfRate: T.secondary, // 자가소비율: 골드(오른쪽 축)
+  grid: T.grid,
+  text: T.text,
+  current: T.dark,
+  saturation: T.brown,
+  best: T.dark,
+  panel: T.panel,
 };
 const MAX_USER_KWP = 200;
 
@@ -96,7 +99,7 @@ export function createCapacityCurve(container) {
         line("NPV 낮시간 비중 상한", COLORS.high, { borderDash: [3, 5] }),
         line("자급률 (%, 오른쪽 축)", COLORS.suff, { yAxisID: "y2" }),
         line("자가소비율 (%, 오른쪽 축)", COLORS.selfRate, { yAxisID: "y2" }),
-        { type: "scatter", label: "NPV 최대 (기준)", data: [], pointStyle: "rectRot", pointRadius: 9, backgroundColor: COLORS.selfRate, borderColor: COLORS.panel, borderWidth: 2 },
+        { type: "scatter", label: "NPV 최대 (기준)", data: [], pointStyle: "rectRot", pointRadius: 9, backgroundColor: COLORS.best, borderColor: COLORS.panel, borderWidth: 2 },
       ],
     },
     options: {
@@ -116,7 +119,7 @@ export function createCapacityCurve(container) {
       plugins: {
         legend: { labels: { color: COLORS.text, usePointStyle: true } },
         tooltip: {
-          backgroundColor: "#1E293B",
+          backgroundColor: COLORS.panel,
           borderColor: COLORS.grid,
           borderWidth: 1,
           titleColor: COLORS.text,

@@ -1,14 +1,17 @@
 // 월별 그래프(Chart.js): 월별 사용량·발전량·자가소비 막대 + 월별 절감액 선, 그리고 계절 요약 표.
 // 그래프는 한 번 만들고 입력이 바뀌면 데이터만 바꿔 update()한다.
+import { readTheme } from "./theme.js";
 import { el, fmt } from "./dom.js";
 
+const T = readTheme();
 const COLORS = {
-  usage: "#94A3B8", // 사용량: 회색 계열
-  gen: "#38BDF8", // 발전량: Cyan
-  self: "#34D399", // 자가소비: 초록
-  saving: "#FBBF24", // 절감액 선: 호박색
-  grid: "#334155",
-  text: "#CBD5E1",
+  usage: T.neutral, // 사용량: 따뜻한 회색
+  gen: T.secondary, // 발전량: 골드
+  self: T.teal, // 자가소비: 청록
+  saving: T.dark, // 절감액 선: 진한 색(막대와 구분)
+  grid: T.grid,
+  text: T.text,
+  panel: T.panel,
 };
 
 /**
@@ -50,7 +53,7 @@ export function createMonthlyChart(container) {
       plugins: {
         legend: { labels: { color: COLORS.text, usePointStyle: true } },
         tooltip: {
-          backgroundColor: "#1E293B",
+          backgroundColor: COLORS.panel,
           borderColor: COLORS.grid,
           borderWidth: 1,
           titleColor: COLORS.text,
