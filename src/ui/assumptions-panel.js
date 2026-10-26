@@ -57,11 +57,10 @@ export function renderAssumptionsPanel(container, data, values, notes = {}) {
         ? `사용자가 바꾼 값입니다(기본값 ${p.value === null ? "미정" : p.value.toLocaleString("ko-KR")}). 기본값의 출처: ${p.source}`
         : p.source;
     return `<tr>
-      <td>${esc(p.label)}<br><code>${esc(id)}</code></td>
-      <td class="num">${esc(shown)}</td>
-      <td>${esc(p.unit)}</td>
-      <td><span class="badge badge-${esc(status)}">${esc(STATUS_LABELS[status])}</span></td>
-      <td>${esc(source)}</td>
+      <td class="col-name">${esc(p.label)}<br><code>${esc(id)}</code></td>
+      <td class="num col-value">${esc(shown)} <span class="unit">${esc(p.unit)}</span></td>
+      <td class="col-badge"><span class="badge badge-${esc(status)}">${esc(STATUS_LABELS[status])}</span></td>
+      <td class="col-source"><details><summary>출처·설명 보기</summary><p>${esc(source)}</p></details></td>
     </tr>`;
   });
 
@@ -69,7 +68,13 @@ export function renderAssumptionsPanel(container, data, values, notes = {}) {
   const wasClosed = [...container.querySelectorAll("details.disclosure")].map((d) => !d.open);
 
   container.innerHTML = `
-    <h2>가정 공개 (${rows.length}개${changedCount ? `, 바꾼 값 ${changedCount}개` : ""})</h2>
+    <h2>가정과 검증 (${rows.length}개${changedCount ? `, 바꾼 값 ${changedCount}개` : ""})</h2>
+    <p class="legend">
+      <span class="badge badge-sourced">${esc(STATUS_LABELS.sourced)}</span> 출처를 직접 확인한 값
+      <span class="badge badge-reference">${esc(STATUS_LABELS.reference)}</span> 두 출처로 만든 환산값이나 2차 출처 값
+      <span class="badge badge-assumed">${esc(STATUS_LABELS.assumed)}</span> 출처를 확인하지 못한 임의 가정
+      <span class="badge badge-user">${esc(STATUS_LABELS.user)}</span> 사용자가 바꾼 값
+    </p>
     <details class="disclosure" open>
       <summary>계산식</summary>
       <ul>${FORMULAS.map((f) => `<li>${esc(f)}</li>`).join("")}</ul>
@@ -80,7 +85,7 @@ export function renderAssumptionsPanel(container, data, values, notes = {}) {
     </details>
     <div class="table-wrap">
       <table class="assumptions">
-        <thead><tr><th>항목</th><th>현재 값</th><th>단위</th><th>상태</th><th>출처·설명</th></tr></thead>
+        <thead><tr><th>항목</th><th>현재 값</th><th>상태</th><th>출처</th></tr></thead>
         <tbody>${rows.join("")}</tbody>
       </table>
     </div>`;

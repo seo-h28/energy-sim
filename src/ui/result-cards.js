@@ -37,7 +37,7 @@ function card(title, value, range, steps) {
   for (const line of steps) list.append(el("li", {}, line));
   proof.append(el("summary", {}, "계산 과정 보기"), list);
   box.append(el("h3", { class: "card-title" }, title), el("p", { class: "card-value" }, value));
-  if (range) box.append(el("p", { class: "card-range" }, `낮시간 비중 범위: ${range}`));
+  if (range) box.append(el("p", { class: "card-range" }, `범위 ${range}`));
   box.append(proof);
   return box;
 }
@@ -203,7 +203,24 @@ export function renderResultCards(container, input, range, assumedCount) {
       ? `이 결과는 출처를 확인하지 못한 임의 가정 ${assumedCount}개(월별 사용량 예시 포함)를 그대로 쓴 계산입니다. 실제 설치 결과의 예측이 아닙니다.`
       : "이 계산에 쓴 입력값은 모두 출처 확인값, 참고값, 사용자 입력입니다.",
   );
-  container.replaceChildren(el("h2", {}, "결과 (기준: 낮시간 비중 가운데 값)"), grid, buildShareRangeBox(range), buildUncertaintyBox(input, range.base), note);
+  const heading = el("div", { class: "section-head" });
+  heading.append(
+    el("h2", {}, "핵심 결과"),
+    el("span", { class: "section-sub" }, `기준: 낮시간 사용 비중 ${fmt(range.dayShares.base * 100)}% (범위 ${fmt(range.dayShares.low * 100)}~${fmt(range.dayShares.high * 100)}%)`),
+  );
+  container.replaceChildren(heading, grid, note);
+}
+
+/**
+ * 낮시간 비중 범위 표와 일사 자료 불확실성 표(두 상자). 개요 화면의 아래쪽에 나란히 놓는다.
+ * @param {HTMLElement} container
+ * @param {import("../core/seasonal.js").MonthlyInput} input  기준 입력
+ * @param {ReturnType<typeof import("../core/seasonal.js").summarizeRange>} range
+ */
+export function renderRangeBoxes(container, input, range) {
+  const grid = el("div", { class: "range-grid" });
+  grid.append(buildShareRangeBox(range), buildUncertaintyBox(input, range.base));
+  container.replaceChildren(grid);
 }
 
 /**

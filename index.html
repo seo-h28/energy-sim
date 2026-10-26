@@ -7,28 +7,84 @@
   <link rel="stylesheet" href="src/styles.css">
 </head>
 <body>
-  <header>
-    <h1>에너지 설비 설계 시뮬레이터 (가칭)</h1>
-    <div id="share-bar"></div>
-  </header>
-  <main class="layout">
-    <p id="status">불러오는 중…</p>
-    <div class="col-inputs">
-      <section id="tariff-panel"></section>
-      <section id="input-panel"></section>
-      <section id="usage-panel"></section>
+  <div class="app">
+    <!-- 화면 이동: 큰 화면에서는 왼쪽 세로 막대, 좁은 화면에서는 위쪽 가로 막대 -->
+    <nav id="sidebar" aria-label="화면 이동">
+      <div class="brand" aria-hidden="true">
+        <svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M19.1 4.9L17 7M7 17l-2.1 2.1"/></svg>
+      </div>
+      <div class="tablist" role="tablist" aria-label="화면 구역">
+        <button type="button" class="nav-btn" role="tab" id="nav-overview" data-tab="overview" aria-controls="tab-overview" aria-selected="true">
+          <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>
+          <span class="nav-label">개요</span>
+        </button>
+        <button type="button" class="nav-btn" role="tab" id="nav-inputs" data-tab="inputs" aria-controls="tab-inputs" aria-selected="false" tabindex="-1">
+          <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M4 7h10M18 7h2M4 17h2M10 17h10"/><circle cx="16" cy="7" r="2"/><circle cx="8" cy="17" r="2"/></svg>
+          <span class="nav-label">입력</span>
+        </button>
+        <button type="button" class="nav-btn" role="tab" id="nav-monthly" data-tab="monthly" aria-controls="tab-monthly" aria-selected="false" tabindex="-1">
+          <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M5 20V11M12 20V5M19 20v-7"/></svg>
+          <span class="nav-label">월별</span>
+        </button>
+        <button type="button" class="nav-btn" role="tab" id="nav-curve" data-tab="curve" aria-controls="tab-curve" aria-selected="false" tabindex="-1">
+          <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 19c4 0 5-14 9-14s4 14 9 14"/></svg>
+          <span class="nav-label">용량 곡선</span>
+        </button>
+        <button type="button" class="nav-btn" role="tab" id="nav-assumptions" data-tab="assumptions" aria-controls="tab-assumptions" aria-selected="false" tabindex="-1">
+          <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l7 3v5c0 5-3 8-7 10-4-2-7-5-7-10V6z"/><path d="M9 12l2 2 4-4"/></svg>
+          <span class="nav-label">가정·검증</span>
+        </button>
+      </div>
+    </nav>
+
+    <div class="main-col">
+      <header class="topbar">
+        <h1>에너지 설비 설계 시뮬레이터 <span class="subtitle">(가칭)</span></h1>
+        <div id="share-bar"></div>
+      </header>
+      <p id="status">불러오는 중…</p>
       <ul id="errors" role="alert"></ul>
+
+      <main>
+        <!-- 개요: 핵심 결과, 빠른 조정, 누적 현금흐름, 개념도, 범위 -->
+        <section id="tab-overview" class="tab-panel" role="tabpanel" aria-labelledby="nav-overview">
+          <section id="result-panel"></section>
+          <div class="overview-row">
+            <section id="quick-panel"></section>
+            <section id="chart-panel"></section>
+          </div>
+          <section id="diagram-panel"></section>
+          <section id="range-panel"></section>
+        </section>
+
+        <!-- 입력: 요금제, 입력값, 월별 사용량 -->
+        <section id="tab-inputs" class="tab-panel" role="tabpanel" aria-labelledby="nav-inputs" hidden>
+          <div class="inputs-grid">
+            <div class="inputs-col">
+              <section id="tariff-panel"></section>
+              <section id="input-panel"></section>
+            </div>
+            <div class="inputs-col">
+              <section id="usage-panel"></section>
+            </div>
+          </div>
+        </section>
+
+        <section id="tab-monthly" class="tab-panel" role="tabpanel" aria-labelledby="nav-monthly" hidden>
+          <section id="monthly-panel"></section>
+        </section>
+
+        <section id="tab-curve" class="tab-panel" role="tabpanel" aria-labelledby="nav-curve" hidden>
+          <section id="curve-panel"></section>
+        </section>
+
+        <section id="tab-assumptions" class="tab-panel" role="tabpanel" aria-labelledby="nav-assumptions" hidden>
+          <section id="assumptions-panel"></section>
+        </section>
+      </main>
+      <footer id="site-footer"></footer>
     </div>
-    <div class="col-results">
-      <section id="diagram-panel"></section>
-      <section id="result-panel"></section>
-      <section id="chart-panel"></section>
-      <section id="curve-panel"></section>
-      <section id="monthly-panel"></section>
-    </div>
-    <section id="assumptions-panel"></section>
-  </main>
-  <footer id="site-footer"></footer>
+  </div>
   <!-- Chart.js는 외부 CDN 없이 vendor/에 받아 둔 파일을 쓴다(전역 Chart를 만듦). 모듈보다 먼저 불러와야 함 -->
   <script src="vendor/chart.umd.js"></script>
   <!-- type="module": import/export 문법을 쓰는 ES 모듈. file://로 열면 브라우저가 막으므로 로컬 서버로 연다 -->

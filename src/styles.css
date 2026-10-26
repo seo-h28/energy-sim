@@ -1,104 +1,199 @@
-/* Dark Slate 테마 하나로 통일. 시연 거리를 고려해 글자를 크게 둔다. */
+/* Dark Navy 테마 하나로 통일. 큰 숫자·넉넉한 여백·분명한 대비로 읽기 쉽게, 시연 거리를 고려해 글자를 크게 둔다. */
 :root {
-  --bg: #0f172a;
-  --surface: #1e293b;
-  --surface-2: #273449;
-  --border: #334155;
-  --text: #e2e8f0;
-  --muted: #94a3b8;
+  --bg: #0b1424;
+  --sidebar: #0e192e;
+  --surface: #121f36;
+  --surface-2: #1a2b4a;
+  --border: #25385a;
+  --text: #e8eef7;
+  --text-strong: #ffffff;
+  --muted: #9fb0c8;
   --accent: #38bdf8;
   --warn: #fbbf24;
   --danger: #fca5a5;
+  --radius: 16px;
 }
 * { box-sizing: border-box; }
 [hidden] { display: none !important; } /* display: grid 같은 규칙이 hidden 속성을 이기지 않게 */
-body { font-family: system-ui, "Malgun Gothic", sans-serif; font-size: 18px; margin: 0; padding: 0 24px 40px; color: var(--text); background: var(--bg); line-height: 1.5; }
-header h1 { font-size: 28px; margin: 20px 0 4px; }
-h2 { font-size: 22px; margin: 0 0 12px; color: var(--accent); }
-h3 { margin: 0; }
+html { scroll-behavior: smooth; }
+body { margin: 0; font-family: system-ui, "Malgun Gothic", sans-serif; font-size: 17px; line-height: 1.55; color: var(--text); background: var(--bg); }
+h1, h2, h3 { margin: 0; }
+h2 { font-size: 20px; font-weight: 700; color: var(--text-strong); margin-bottom: 14px; }
+p { margin: 0; }
+code { font-size: 13px; color: var(--muted); }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 
-/* 화면 배치: 왼쪽 입력, 오른쪽 결과·그래프, 아래 가정 공개 */
-.layout { display: grid; grid-template-columns: minmax(340px, 460px) minmax(0, 1fr); gap: 24px; align-items: start; }
-.layout > #status, .layout > #assumptions-panel { grid-column: 1 / -1; }
-.col-inputs, .col-results { display: grid; gap: 20px; min-width: 0; }
-.col-inputs section, .col-results section { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 16px; }
-@media (max-width: 1000px) {
-  .layout { grid-template-columns: minmax(0, 1fr); }
-  .col-results { order: -1; }
+/* ── 전체 틀: 왼쪽 막대 + 본문 ── */
+.app { display: grid; grid-template-columns: 96px minmax(0, 1fr); min-height: 100vh; }
+.main-col { padding: 22px 32px 40px; min-width: 0; max-width: 1560px; width: 100%; }
+#sidebar { position: sticky; top: 0; height: 100vh; display: flex; flex-direction: column; align-items: center; gap: 22px; padding: 18px 8px; background: var(--sidebar); border-right: 1px solid var(--border); }
+.brand { color: var(--warn); display: grid; place-items: center; width: 48px; height: 48px; border-radius: 14px; background: rgba(251, 191, 36, 0.1); }
+.tablist { display: flex; flex-direction: column; gap: 8px; width: 100%; }
+.nav-btn { display: grid; justify-items: center; gap: 4px; width: 100%; margin: 0; padding: 12px 4px; font-size: 13px; line-height: 1.2; color: var(--muted); background: transparent; border: 1px solid transparent; border-radius: 14px; cursor: pointer; }
+.nav-btn:hover { color: var(--text); background: rgba(56, 189, 248, 0.07); }
+.nav-btn[aria-selected="true"] { color: var(--accent); background: rgba(56, 189, 248, 0.14); border-color: rgba(56, 189, 248, 0.35); font-weight: 700; }
+
+.topbar { display: flex; justify-content: space-between; align-items: center; gap: 16px; flex-wrap: wrap; margin-bottom: 18px; }
+.topbar h1 { font-size: 28px; font-weight: 800; letter-spacing: -0.02em; color: var(--text-strong); }
+.subtitle { color: var(--muted); font-size: 18px; font-weight: 500; }
+#status:empty { display: none; }
+#status { color: var(--warn); margin-bottom: 12px; }
+#errors { margin: 0 0 16px; padding: 12px 16px 12px 36px; color: var(--danger); font-size: 17px; background: rgba(248, 113, 113, 0.1); border: 1px solid rgba(248, 113, 113, 0.4); border-radius: 12px; }
+#errors:empty { display: none; }
+
+main { display: block; }
+.tab-panel { display: grid; gap: 20px; }
+
+/* 카드 모양: 구역마다 같은 바탕·테두리·둥근 모서리 */
+#quick-panel, #chart-panel, #diagram-panel, #tariff-panel, #input-panel, #usage-panel, #monthly-panel, #curve-panel, #assumptions-panel {
+  background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 22px;
 }
-#assumptions-panel { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 16px; }
+.section-head { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin-bottom: 14px; }
+.section-head h2 { margin: 0; }
+.section-sub { color: var(--muted); font-size: 15px; }
+.sub-heading { font-size: 17px; font-weight: 700; margin: 20px 0 8px; color: var(--text-strong); }
 
-/* 입력 패널: 한 항목 = 위줄(이름 | 배지), 아랫줄(입력칸 | 단위) */
-.input-grid { display: grid; gap: 14px; }
+/* ── 개요 ── */
+.overview-row { display: grid; grid-template-columns: minmax(300px, 380px) minmax(0, 1fr); gap: 20px; align-items: stretch; }
+.chart-box { position: relative; height: 380px; background: var(--bg); border: 1px solid var(--border); border-radius: 12px; padding: 10px; }
+#chart-panel .chart-box { height: 340px; }
+
+/* 핵심 결과 카드 */
+.cards { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px; align-items: stretch; }
+.card { display: flex; flex-direction: column; text-align: center; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 22px 18px 16px; }
+.card-title { font-size: 16px; font-weight: 600; color: var(--muted); }
+.card-value { font-size: 38px; font-weight: 800; line-height: 1.15; margin: 8px 0 8px; color: var(--text-strong); font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+.card-range { margin: 0 0 14px; font-size: 13px; line-height: 1.4; color: var(--accent); font-variant-numeric: tabular-nums; }
+.proof-box { border-top: 1px solid var(--border); padding-top: 10px; margin-top: auto; text-align: left; }
+.proof-box summary { cursor: pointer; color: var(--muted); font-size: 15px; text-align: center; }
+.proof-box[open] summary { color: var(--text); }
+.steps { margin: 10px 0 0; padding-left: 22px; font-size: 15px; color: var(--text); }
+.steps li { margin: 6px 0; white-space: pre-wrap; overflow-wrap: anywhere; }
+.card-note { color: var(--warn); font-size: 15px; margin-top: 12px; }
+
+/* 빠른 조정 슬라이더 */
+.quick-body { display: grid; gap: 22px; margin-bottom: 14px; }
+.quick-row { display: grid; gap: 6px; }
+.quick-head { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
+.quick-head label { color: var(--text); font-size: 16px; }
+.quick-value { font-size: 22px; font-weight: 800; color: var(--text-strong); font-variant-numeric: tabular-nums; }
+.quick-scale { display: flex; justify-content: space-between; color: var(--muted); font-size: 13px; }
+input[type="range"] { width: 100%; height: 6px; accent-color: var(--accent); cursor: pointer; }
+.link-button { margin: 0; padding: 6px 0; font-size: 15px; color: var(--accent); background: none; border: 0; cursor: pointer; text-decoration: underline; text-underline-offset: 3px; }
+
+/* 범위 표(낮시간 비중, 일사 자료 불확실성) */
+.range-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px; align-items: start; }
+.range-box { background: var(--surface); border: 1px solid var(--border); border-left: 4px solid var(--warn); border-radius: var(--radius); padding: 20px 22px; }
+.range-box h3 { font-size: 18px; font-weight: 700; color: var(--text-strong); }
+.range-box p { font-size: 15px; color: var(--muted); margin: 6px 0 12px; }
+.range-table { width: 100%; border-collapse: collapse; font-size: 16px; }
+.range-table th, .range-table td { padding: 8px 8px; text-align: right; border-bottom: 1px solid var(--border); font-variant-numeric: tabular-nums; }
+.range-table th:first-child { text-align: left; font-weight: 600; }
+.range-table tr:last-child th, .range-table tr:last-child td { border-bottom: 0; }
+
+/* 개념도 */
+.diagram-box { background: var(--bg); border: 1px solid var(--border); border-radius: 12px; padding: 8px; }
+.dg-svg { display: block; width: 100%; max-height: 300px; }
+.dg-caption { margin: 12px 2px 0; color: var(--text); font-size: 16px; }
+
+/* ── 입력 ── */
+.inputs-grid { display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); gap: 20px; align-items: start; }
+.inputs-col { display: grid; gap: 20px; min-width: 0; }
+.input-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 18px 24px; }
 .field { display: grid; grid-template-columns: minmax(0, 1fr) auto; grid-template-areas: "label badge" "control unit"; gap: 4px 10px; align-items: center; }
-.field > label { grid-area: label; }
+.field > label { grid-area: label; font-size: 16px; }
 .field > .badge { grid-area: badge; }
-.field > .unit { grid-area: unit; color: var(--muted); font-size: 15px; }
+.field > .unit { grid-area: unit; color: var(--muted); font-size: 14px; }
 .field > .control, .field > input { grid-area: control; }
 .field > select { grid-area: 2 / 1 / 3 / 3; }
 .field .control { display: flex; align-items: center; gap: 8px; }
 .field output { font-variant-numeric: tabular-nums; min-width: 3em; }
-input[type="number"], select { width: 100%; font-size: 18px; padding: 6px 10px; color: var(--text); background: var(--bg); border: 1px solid var(--border); border-radius: 8px; }
+input[type="number"], select, #usage-paste { width: 100%; font-size: 17px; padding: 8px 12px; color: var(--text); background: var(--bg); border: 1px solid var(--border); border-radius: 10px; }
 input[type="number"] { text-align: right; }
-input[type="range"] { width: 100%; accent-color: var(--accent); }
-input:focus-visible, select:focus-visible, button:focus-visible, summary:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
-#errors { color: var(--danger); font-size: 17px; margin: 0; padding-left: 24px; }
-#errors:empty { display: none; }
-button { font-size: 16px; padding: 8px 14px; margin-top: 14px; color: var(--text); background: var(--surface-2); border: 1px solid var(--border); border-radius: 8px; cursor: pointer; }
+#usage-paste { font-size: 15px; resize: vertical; font-family: inherit; text-align: left; }
+button { font-size: 16px; padding: 9px 16px; margin-top: 14px; color: var(--text); background: var(--surface-2); border: 1px solid var(--border); border-radius: 10px; cursor: pointer; }
 button:hover { border-color: var(--accent); }
 
-/* 상태 배지: sourced=초록, reference=노랑, assumed=회색, user=파랑 (spec 4). 글자도 함께 표시 */
-.badge { display: inline-block; padding: 2px 10px; border-radius: 10px; font-size: 14px; white-space: nowrap; font-weight: 600; }
+/* 상태 배지: sourced=초록, reference=노랑, assumed=회색, user=파랑. 색만이 아니라 글자도 함께 쓴다 */
+.badge { display: inline-block; padding: 3px 11px; border-radius: 999px; font-size: 13px; white-space: nowrap; font-weight: 700; }
 .badge-sourced { background: #14532d; color: #bbf7d0; }
 .badge-reference { background: #713f12; color: #fde68a; }
 .badge-assumed { background: #3b4658; color: #e2e8f0; }
 .badge-user { background: #0c4a6e; color: #bae6fd; }
 
-/* 결과 카드: 큰 숫자 */
-.cards { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; align-items: start; }
-@media (min-width: 1750px) { .cards { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
-@media (max-width: 560px) { .cards { grid-template-columns: minmax(0, 1fr); } }
-.card { background: var(--bg); border: 1px solid var(--border); border-radius: 12px; padding: 16px 18px; }
-.card-title { font-size: 16px; font-weight: 600; color: var(--muted); }
-.card-value { font-size: 38px; font-weight: 800; line-height: 1.15; margin: 6px 0 12px; color: var(--accent); font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
-.proof-box { border-top: 1px solid var(--border); padding-top: 8px; }
-.proof-box summary { cursor: pointer; color: var(--muted); font-size: 15px; }
-.proof-box[open] summary { color: var(--text); }
-.steps { margin: 10px 0 0; padding-left: 22px; font-size: 15px; color: var(--text); }
-.steps li { margin: 6px 0; white-space: pre-wrap; overflow-wrap: anywhere; }
-.card-note { color: var(--warn); font-size: 15px; margin: 12px 0 0; }
+/* 월별 사용량 입력 */
+.usage-head { display: flex; justify-content: space-between; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 8px; }
+.usage-head h2 { margin: 0; }
+.usage-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; margin: 14px 0; }
+.usage-cell { display: grid; gap: 3px; }
+.usage-cell label { color: var(--muted); font-size: 14px; }
+.usage-cell input { padding: 6px 8px; font-size: 16px; }
+.usage-total { margin: 4px 0 10px; font-variant-numeric: tabular-nums; }
+.usage-message { color: var(--warn); font-size: 15px; margin-top: 6px; min-height: 1.4em; }
+.usage-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+.usage-actions button { margin-top: 8px; }
 
-/* 데이터 불확실성 범위 */
-.range-box { margin-top: 16px; padding: 14px 16px; border: 1px dashed var(--warn); border-radius: 12px; }
-.range-box h3 { font-size: 17px; color: var(--warn); }
-.range-box p { font-size: 15px; color: var(--muted); margin: 6px 0 10px; }
-.range-table { width: 100%; border-collapse: collapse; font-size: 16px; }
-.range-table th, .range-table td { padding: 6px 8px; text-align: right; border-bottom: 1px solid var(--border); font-variant-numeric: tabular-nums; }
-.range-table th:first-child { text-align: left; font-weight: 600; }
-
-/* 그래프: 높이를 고정해야 Chart.js가 반응형으로 크기를 잡는다 */
-.chart-box { position: relative; height: 380px; background: var(--bg); border: 1px solid var(--border); border-radius: 12px; padding: 8px; }
-
-/* 가정 공개 */
+/* ── 월별 · 용량 곡선 ── */
 .table-wrap { overflow-x: auto; }
-table.assumptions { border-collapse: collapse; width: 100%; min-width: 760px; }
-table.assumptions td:last-child { min-width: 260px; }
-table.assumptions th, table.assumptions td { border-bottom: 1px solid var(--border); padding: 8px; text-align: left; vertical-align: top; }
-table.assumptions th { color: var(--muted); font-weight: 600; }
-table.assumptions td.num { text-align: right; font-variant-numeric: tabular-nums; }
-table.assumptions code { font-size: 13px; color: var(--muted); }
-.disclosure { background: var(--bg); border: 1px solid var(--border); border-radius: 8px; padding: 8px 16px; margin: 8px 0 14px; }
-.disclosure summary { cursor: pointer; font-weight: 600; }
-.disclosure li { margin: 4px 0; font-size: 16px; }
+.season-table { width: 100%; border-collapse: collapse; font-size: 16px; min-width: 520px; }
+.season-table th, .season-table td { padding: 8px 10px; text-align: right; border-bottom: 1px solid var(--border); font-variant-numeric: tabular-nums; }
+.season-table th:first-child { text-align: left; font-weight: 600; }
+.curve-controls { grid-template-areas: "label" "control"; grid-template-columns: minmax(0, 1fr); margin: 10px 0 14px; max-width: 360px; }
+.curve-bullets { margin: 14px 0; padding-left: 22px; font-size: 16px; }
+.curve-bullets li { margin: 6px 0; }
+#curve-panel .range-table, #monthly-panel .season-table { margin-top: 4px; }
+
+/* ── 가정·검증 ── */
+.legend { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 14px; margin: 0 0 16px; color: var(--muted); font-size: 15px; }
+table.assumptions { border-collapse: collapse; width: 100%; }
+table.assumptions th, table.assumptions td { padding: 12px 10px; text-align: left; vertical-align: top; border-bottom: 1px solid var(--border); }
+table.assumptions th { color: var(--muted); font-weight: 600; font-size: 15px; }
+table.assumptions .col-name { font-weight: 600; min-width: 190px; }
+table.assumptions td.num { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; font-weight: 600; }
+table.assumptions .unit { color: var(--muted); font-size: 13px; font-weight: 400; }
+table.assumptions .col-source { min-width: 220px; }
+table.assumptions details summary { cursor: pointer; color: var(--accent); font-size: 15px; }
+table.assumptions details p { margin-top: 6px; color: var(--muted); font-size: 15px; }
+.disclosure { background: var(--bg); border: 1px solid var(--border); border-radius: 12px; padding: 10px 18px; margin: 10px 0 16px; }
+.disclosure summary { cursor: pointer; font-weight: 700; }
+.disclosure li { margin: 5px 0; font-size: 16px; }
+
+/* 공유 링크 바 */
+#share-bar { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+#share-bar label { color: var(--muted); font-size: 14px; }
+#share-url { flex: 0 1 300px; min-width: 160px; font-size: 13px; padding: 7px 10px; color: var(--muted); background: var(--surface); border: 1px solid var(--border); border-radius: 10px; }
+#share-bar button { margin-top: 0; padding: 7px 14px; font-size: 15px; }
+.share-message { color: var(--warn); font-size: 14px; flex-basis: 100%; }
 
 /* 푸터: 한계와 면책 */
-#site-footer { margin-top: 24px; padding: 16px; border-top: 1px solid var(--border); color: var(--muted); font-size: 15px; }
+#site-footer { margin-top: 28px; padding: 18px 4px 0; border-top: 1px solid var(--border); color: var(--muted); font-size: 14px; }
 #site-footer p { margin: 6px 0; }
 
-/* 시스템 개념도(SVG). 색만으로 구분하지 않도록 상자마다 글자가 있다 */
-.diagram-box { background: var(--bg); border: 1px solid var(--border); border-radius: 12px; padding: 8px; }
-.dg-svg { display: block; width: 100%; height: auto; }
-.dg-box { fill: var(--surface); stroke: var(--border); stroke-width: 2; }
+/* ── 화면 폭에 따른 조정 ── */
+@media (max-width: 1320px) {
+  .cards { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 1100px) {
+  .overview-row, .inputs-grid, .range-grid { grid-template-columns: minmax(0, 1fr); }
+}
+@media (max-width: 900px) {
+  .app { grid-template-columns: minmax(0, 1fr); }
+  #sidebar { position: sticky; top: 0; z-index: 20; height: auto; flex-direction: row; align-items: center; gap: 10px; padding: 8px 12px; border-right: 0; border-bottom: 1px solid var(--border); overflow-x: auto; }
+  .brand { display: none; }
+  .tablist { flex-direction: row; gap: 6px; }
+  .nav-btn { width: auto; min-width: 72px; padding: 8px 10px; }
+  .main-col { padding: 16px 14px 32px; }
+  .topbar h1 { font-size: 22px; }
+}
+@media (max-width: 560px) {
+  .cards { grid-template-columns: minmax(0, 1fr); }
+  .card-value { font-size: 34px; }
+  .usage-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  #quick-panel, #chart-panel, #diagram-panel, #tariff-panel, #input-panel, #usage-panel, #monthly-panel, #curve-panel, #assumptions-panel { padding: 16px; }
+}
+
+/* ── 그림(개념도) ── */
+.dg-box { fill: var(--surface-2); stroke: var(--border); stroke-width: 2; }
 .dg-roof { fill: #172a46; stroke: var(--border); stroke-width: 2; }
 .dg-slot { fill: none; stroke: var(--border); stroke-width: 1.2; opacity: 0.55; transition: fill 0.25s, opacity 0.25s; }
 .dg-slot.on { fill: #0c4a6e; stroke: var(--accent); stroke-width: 1.6; opacity: 1; }
@@ -114,36 +209,4 @@ table.assumptions code { font-size: 13px; color: var(--muted); }
 .dg-flow.none { stroke-dasharray: 5 5; opacity: 0.45; }
 .dg-head-main { fill: var(--accent); }
 .dg-head-export { fill: #a78bfa; }
-.dg-caption { margin: 10px 2px 0; color: var(--text); font-size: 16px; }
-@media (prefers-reduced-motion: reduce) { .dg-slot { transition: none; } }
-
-/* 월별 사용량 입력 */
-.usage-head { display: flex; justify-content: space-between; align-items: center; gap: 8px; flex-wrap: wrap; }
-.usage-head h2 { margin: 0; }
-.usage-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; margin: 12px 0; }
-.usage-cell { display: grid; gap: 2px; }
-.usage-cell label { color: var(--muted); font-size: 14px; }
-.usage-cell input { padding: 4px 6px; font-size: 16px; }
-.usage-total { margin: 4px 0 8px; font-variant-numeric: tabular-nums; }
-.usage-message { color: var(--warn); font-size: 15px; margin: 6px 0 0; min-height: 1.4em; }
-.usage-actions { display: flex; gap: 8px; flex-wrap: wrap; }
-#usage-paste { width: 100%; font-size: 15px; padding: 6px 10px; color: var(--text); background: var(--bg); border: 1px solid var(--border); border-radius: 8px; resize: vertical; font-family: inherit; }
-
-/* 결과 카드: 낮시간 비중 범위 한 줄, 월별 표 */
-.card-range { margin: -6px 0 10px; font-size: 14px; color: var(--muted); font-variant-numeric: tabular-nums; }
-.sub-heading { font-size: 17px; margin: 16px 0 6px; color: var(--text); }
-.season-table { width: 100%; border-collapse: collapse; font-size: 15px; min-width: 520px; }
-.season-table th, .season-table td { padding: 6px 8px; text-align: right; border-bottom: 1px solid var(--border); font-variant-numeric: tabular-nums; }
-.season-table th:first-child { text-align: left; font-weight: 600; }
-
-/* 용량 곡선 */
-.curve-controls { grid-template-areas: "label" "control"; grid-template-columns: minmax(0, 1fr); margin: 8px 0 12px; max-width: 360px; }
-.curve-bullets { margin: 12px 0; padding-left: 22px; font-size: 16px; }
-.curve-bullets li { margin: 6px 0; }
-
-/* 공유 링크 바 */
-#share-bar { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin: 4px 0 12px; }
-#share-bar label { color: var(--muted); font-size: 15px; }
-#share-url { flex: 1 1 260px; min-width: 200px; max-width: 640px; font-size: 14px; padding: 6px 10px; color: var(--muted); background: var(--surface); border: 1px solid var(--border); border-radius: 8px; }
-#share-bar button { margin-top: 0; }
-.share-message { color: var(--warn); font-size: 15px; }
+@media (prefers-reduced-motion: reduce) { .dg-slot { transition: none; } html { scroll-behavior: auto; } }

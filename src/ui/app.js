@@ -11,7 +11,9 @@ import { renderTariffSelector } from "./tariff-selector.js";
 import { renderShareBar } from "./share-bar.js";
 import { encodeShare, decodeShare, SHARE_PREFIX } from "../core/share.js";
 import { renderUsagePanel } from "./usage-panel.js";
-import { renderResultCards, renderResultPlaceholder } from "./result-cards.js";
+import { renderResultCards, renderRangeBoxes, renderResultPlaceholder } from "./result-cards.js";
+import { initTabs } from "./tabs.js";
+import { createQuickControls } from "./quick-controls.js";
 import { createCashflowChart } from "./chart.js";
 import { createMonthlyChart } from "./monthly-chart.js";
 import { createCapacityCurve } from "./capacity-curve.js";
@@ -34,6 +36,7 @@ function timed(label, fn) {
 }
 const inputPanel = document.getElementById("input-panel");
 const resultPanel = document.getElementById("result-panel");
+const rangePanel = document.getElementById("range-panel");
 const errorBox = document.getElementById("errors");
 const panel = document.getElementById("assumptions-panel");
 
@@ -89,6 +92,8 @@ try {
   let usagePanel = null;
   /** @type {ReturnType<typeof renderTariffSelector> | null} */
   let tariffSel = null;
+  /** @type {ReturnType<typeof createQuickControls> | null} */
+  let quick = null;
   let applying = true; // 시작 설정과 공유 링크를 되살리는 동안은 주소를 바꾸지 않는다
 
   /** 지금 화면을 링크용 상태로: 기본값과 다른 값만 담는다 */
@@ -150,8 +155,10 @@ try {
     const unique = [...new Set(friendlyErrors(errors))];
     errorBox.replaceChildren(...unique.map((msg) => el("li", {}, msg)));
     timed("가정 패널", () => renderAssumptionsPanel(panel, data, state.values, state.notes));
+    quick?.sync(state.values);
     if (errors.length) {
       renderResultPlaceholder(resultPanel);
+      rangePanel.replaceChildren();
       cancelHeavy();
       cashChart.hide();
       monthlyChart.hide();
@@ -164,6 +171,7 @@ try {
     const range = timed("계산(범위)", () => summarizeRange(withoutShare, dayShareLow, dayShareHigh));
     const base = range.base;
     timed("결과 카드", () => renderResultCards(resultPanel, input, range, countAssumed(state.values, data, state.usageIsExample)));
+    timed("범위 표", () => renderRangeBoxes(rangePanel, input, range));
     timed("개념도", () => diagram.update(input, flowTotals(base.year1), base.firstYearSavingKrw));
     scheduleHeavy(() => {
       timed("누적 그래프", () =>
@@ -191,6 +199,9 @@ try {
     recompute();
   });
   tariffSel = renderTariffSelector(document.getElementById("tariff-panel"), tariffData, controller);
+  const tabs = initTabs(document.getElementById("sidebar"));
+  quick = createQuickControls(document.getElementById("quick-panel"), controller, (name) => tabs.show(name));
+  quick.sync(state.values);
 
   // 용량 곡선의 탐색 최대 용량을 바꿔도 링크에 반영한다(이 칸은 계산 전체를 다시 하지 않아 따로 연결)
   document.getElementById("curve-max").addEventListener("input", syncUrl);
