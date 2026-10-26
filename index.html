@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>에너지 설비 설계 시뮬레이터 (가칭)</title>
+  <link rel="stylesheet" href="src/styles.css">
+</head>
+<body>
+  <header>
+    <h1>에너지 설비 설계 시뮬레이터 (가칭)</h1>
+    <div id="share-bar"></div>
+  </header>
+  <main class="layout">
+    <p id="status">불러오는 중…</p>
+    <div class="col-inputs">
+      <section id="tariff-panel"></section>
+      <section id="input-panel"></section>
+      <section id="usage-panel"></section>
+      <ul id="errors" role="alert"></ul>
+    </div>
+    <div class="col-results">
+      <section id="diagram-panel"></section>
+      <section id="result-panel"></section>
+      <section id="chart-panel"></section>
+      <section id="curve-panel"></section>
+      <section id="monthly-panel"></section>
+    </div>
+    <section id="assumptions-panel"></section>
+  </main>
+  <footer id="site-footer"></footer>
+  <!-- Chart.js는 외부 CDN 없이 vendor/에 받아 둔 파일을 쓴다(전역 Chart를 만듦). 모듈보다 먼저 불러와야 함 -->
+  <script src="vendor/chart.umd.js"></script>
+  <!-- type="module": import/export 문법을 쓰는 ES 모듈. file://로 열면 브라우저가 막으므로 로컬 서버로 연다 -->
+  <script type="module" src="src/ui/app.js"></script>
+</body>
+</html>

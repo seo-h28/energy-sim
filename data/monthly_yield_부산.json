@@ -1,0 +1,138 @@
+{
+  "meta": {
+    "name": "부산 월별 발전량 표 (kWh/kWp)",
+    "source": "PVGIS (EU JRC ERA5) & ASOS 2024",
+    "status": "reference",
+    "badge": "[Reference]",
+    "statusNote": "표 전체는 두 출처로 계산한 참고 환산값이라 reference. 연 총량(annualKwhPerKwp)만 출처에서 확인한 값이라 sourced. 다년 ASOS 수집과 PVGIS 월별 대조로 월 분포를 검증하면 sourced로 올릴 수 있음",
+    "generated": "2026-10-26",
+    "location": {
+      "lat": 35.18,
+      "lon": 129.07,
+      "note": "PVGIS 조회 좌표. ASOS는 부산 지점 159(근사 35.10N 129.03E)"
+    },
+    "surface": {
+      "tiltDeg": 35.0,
+      "azimuthDeg": 0.0,
+      "azimuthNote": "정남향 0°"
+    },
+    "annualKwhPerKwp": 1484.15,
+    "annualKwhPerKwpStatus": "sourced",
+    "annualKwhPerKwpBadge": "[Sourced]",
+    "annualKwhPerKwpSource": "PVGIS-ERA5, 1 kWp 결정질 실리콘, 시스템 손실 14%, 경사 35°, 방위 0°. 사용자가 브라우저에서 확인해 보고한 값(docs/sources.md)",
+    "monthlyDistributionSource": "ASOS 부산(159) 2024년 시간별 일사(icsr) 1개 연도 -> pvlib 경사면 환산",
+    "method": [
+      "icsr(MJ/m², 시 끝 라벨) -> W/m² (x 277.78)",
+      "태양 위치는 라벨 -30분(구간 가운데)으로 계산",
+      "Erbs 분해 + Hay-Davies 경사면 일사, 알베도 0.2(임의 가정)",
+      "월별 발전량 = 연 총량(PVGIS) x 월 경사면 일사 / 연 경사면 일사"
+    ],
+    "libraries": {
+      "pvlib": "0.15.2",
+      "pandas": "2.3.3",
+      "numpy": "2.2.6"
+    },
+    "lossAlreadyApplied": "PVGIS 시스템 손실 14%와 입사각 -2.52%·온도 -3.99% 등 총 -19.51%가 이미 반영됨. 이 표를 쓸 때 시스템 손실률을 다시 곱하지 말 것(이중 적용).",
+    "impliedPerformanceRatio": 0.8073,
+    "impliedPerformanceRatioNote": "PVGIS 연 발전량 / ASOS 경사면 연 일사. PVGIS 자체의 PR(1484.15/1843.86 = 0.805)과 다르면 두 일사 자료의 눈금 차이를 뜻함",
+    "ghiYearKwhM2_asos": 1608.8,
+    "poaYearKwhM2_asos": 1838.4,
+    "checks": {
+      "tilt0PoaVsGhiYear": 0.0,
+      "poaYearVsPvgisPoaYear": -0.0029,
+      "poaYearVsPvgisPoaYearNote": "ASOS 2024 경사면 연 일사 / PVGIS 경사면 연 일사(1843.86) - 1. 0에 가까우면 두 일사 자료의 경사면 연 총량이 비슷하다는 뜻(1개 연도 대 PVGIS 기후값 비교)"
+    },
+    "caveats": [
+      "월별 분포는 2024년 1개 연도의 ASOS 값이다(연도별 편차 미반영). 다년 평균이 아님.",
+      "같은 해 NASA POWER 월값 합계보다 ASOS 수평면 연 일사가 약 11% 높았다(docs/data_audit.md). 반면 ASOS 경사면 연 일사는 PVGIS-ERA5 경사면 값과 0.3% 안에서 비슷했다. 연 총량은 PVGIS 값에 맞췄고 월별 비율만 ASOS를 따랐다.",
+      "경사면 환산 모델(Erbs, Hay-Davies)과 알베도 0.2는 가정이며 결과에 영향을 준다(민감도 미평가).",
+      "관측소 값이라 옥상 실제값과 다를 수 있고 음영·적설·먼지는 반영하지 않았다."
+    ]
+  },
+  "months": [
+    {
+      "month": 1,
+      "ratio": 0.08520024417217562,
+      "kwhPerKwp": 126.44994238813445,
+      "ghiKwhM2_asos": 95.24,
+      "poaKwhM2_asos": 156.64
+    },
+    {
+      "month": 2,
+      "ratio": 0.055310527270389265,
+      "kwhPerKwp": 82.08911904834824,
+      "ghiKwhM2_asos": 77.41,
+      "poaKwhM2_asos": 101.69
+    },
+    {
+      "month": 3,
+      "ratio": 0.09235257884256126,
+      "kwhPerKwp": 137.0650798891873,
+      "ghiKwhM2_asos": 141.11,
+      "poaKwhM2_asos": 169.79
+    },
+    {
+      "month": 4,
+      "ratio": 0.08175002656953273,
+      "kwhPerKwp": 121.329301933172,
+      "ghiKwhM2_asos": 146.44,
+      "poaKwhM2_asos": 150.29
+    },
+    {
+      "month": 5,
+      "ratio": 0.1045952660013878,
+      "kwhPerKwp": 155.2350640359597,
+      "ghiKwhM2_asos": 206.54,
+      "poaKwhM2_asos": 192.29
+    },
+    {
+      "month": 6,
+      "ratio": 0.08021932051927123,
+      "kwhPerKwp": 119.0575045486764,
+      "ghiKwhM2_asos": 165.01,
+      "poaKwhM2_asos": 147.48
+    },
+    {
+      "month": 7,
+      "ratio": 0.07582916672151495,
+      "kwhPerKwp": 112.54185778973641,
+      "ghiKwhM2_asos": 151.89,
+      "poaKwhM2_asos": 139.41
+    },
+    {
+      "month": 8,
+      "ratio": 0.10577554847448184,
+      "kwhPerKwp": 156.98678026840224,
+      "ghiKwhM2_asos": 196.62,
+      "poaKwhM2_asos": 194.46
+    },
+    {
+      "month": 9,
+      "ratio": 0.08703250950313139,
+      "kwhPerKwp": 129.16929897907247,
+      "ghiKwhM2_asos": 143.38,
+      "poaKwhM2_asos": 160.0
+    },
+    {
+      "month": 10,
+      "ratio": 0.0667637918487852,
+      "kwhPerKwp": 99.08748167237455,
+      "ghiKwhM2_asos": 98.86,
+      "poaKwhM2_asos": 122.74
+    },
+    {
+      "month": 11,
+      "ratio": 0.0734931142795567,
+      "kwhPerKwp": 109.07480555800407,
+      "ghiKwhM2_asos": 89.63,
+      "poaKwhM2_asos": 135.11
+    },
+    {
+      "month": 12,
+      "ratio": 0.09167790579721204,
+      "kwhPerKwp": 136.06376388893224,
+      "ghiKwhM2_asos": 96.63,
+      "poaKwhM2_asos": 168.54
+    }
+  ]
+}
