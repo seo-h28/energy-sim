@@ -23,6 +23,7 @@ import { createCapacityCurve } from "./capacity-curve.js";
 import { createSensitivityPanel } from "./sensitivity-chart.js";
 import { createSpacePanel } from "./space-panel.js";
 import { createDesignPanel } from "./design-compare.js";
+import { renderInputGuide } from "./input-guide.js";
 import { renderStory, renderGlossary, renderSeasons, renderGap } from "./visuals.js";
 import { energyGap } from "../core/gap.js";
 import { lcoeKrwPerKwh } from "../core/seasonal.js";
@@ -50,6 +51,7 @@ const balancePanel = document.getElementById("balance-panel");
 const storyPanel = document.getElementById("story-panel");
 const seasonPanel = document.getElementById("season-panel");
 const gapPanel = document.getElementById("gap-panel");
+renderInputGuide(/** @type {HTMLElement} */ (document.getElementById("guide-panel")));
 const errorBox = document.getElementById("errors");
 const panel = document.getElementById("assumptions-panel");
 

@@ -59,9 +59,20 @@ export function renderInputPanel(container, data, onChange) {
   const form = el("form", { class: "input-grid", autocomplete: "off" });
   form.addEventListener("submit", (e) => e.preventDefault());
 
-  for (const id of Object.keys(PARAM_TO_INPUT)) {
+  // 칸을 뜻이 비슷한 것끼리 묶어 소제목을 붙인다(목록에 없는 칸은 마지막 "기타"로)
+  const GROUPS = [
+    ["설치 조건", ["capacity_kwp", "roof_area_m2", "area_per_kwp_m2", "tilt_deg", "orientation_factor", "yield_kwh_per_kwp", "loss_rate", "degradation_rate"], "group-install"],
+    ["비용", ["install_cost_krw_per_kwp", "subsidy_krw", "om_cost_krw_per_year"], "group-cost"],
+    ["전기요금과 사용 방식", ["electricity_price_krw_per_kwh", "price_escalation_rate", "day_share_low", "day_share_high", "feed_in_price_krw_per_kwh"], "group-tariff"],
+    ["계산 기간", ["discount_rate", "analysis_years"], "group-period"],
+  ];
+  const grouped = new Set(GROUPS.flatMap((g) => g[1]));
+  const rest = Object.keys(PARAM_TO_INPUT).filter((id) => !grouped.has(id));
+  const order = [...GROUPS.flatMap(([title, ids, gid]) => ids.map((id, i) => ({ id, heading: i === 0 ? { title, gid } : null }))), ...rest.map((id, i) => ({ id, heading: i === 0 ? { title: "기타", gid: "group-rest" } : null }))];
+  for (const { id, heading } of order) {
     const p = data.params[id];
     if (!p) continue;
+    if (heading) form.append(el("h3", { class: "field-group", id: heading.gid }, heading.title));
     values[id] = p.value;
 
     const slider = SLIDERS[/** @type {keyof typeof SLIDERS} */ (id)];
