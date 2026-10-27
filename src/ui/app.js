@@ -22,6 +22,7 @@ import { createMonthlyChart } from "./monthly-chart.js";
 import { createCapacityCurve } from "./capacity-curve.js";
 import { createSensitivityPanel } from "./sensitivity-chart.js";
 import { createSpacePanel } from "./space-panel.js";
+import { createDesignPanel } from "./design-compare.js";
 import { lcoeKrwPerKwh } from "../core/seasonal.js";
 import { createSystemDiagram } from "./diagram.js";
 import { SOURCE_GAP, ASOS_OVER_NASA } from "../core/uncertainty.js";
@@ -91,6 +92,8 @@ try {
   const curve = createCapacityCurve(document.getElementById("curve-panel"));
   const sens = createSensitivityPanel(document.getElementById("sensitivity-panel"), () => recompute());
   const space = createSpacePanel(document.getElementById("space-panel"));
+  /** @type {ReturnType<typeof createDesignPanel> | null} */
+  let designPanel = null;
   const diagram = createSystemDiagram(document.getElementById("diagram-panel"));
 
   // 화면 상태: 입력칸 값, 값 설명(요금제 등), 월별 사용량
@@ -179,6 +182,7 @@ try {
       curve.hide();
       sens.hide();
       space.hide();
+      designPanel?.refresh();
       diagram.hide();
       syncUrl();
       return;
@@ -213,6 +217,7 @@ try {
           years: input.analysisYears,
         }),
       );
+      timed("설계안 비교", () => designPanel?.refresh());
       timed("민감도", () => sens.update({ values: billing ? { ...state.values, tariff_scale: 1 } : state.values, usage: state.usage, toInput: (v, u) => buildEngineInput(v, u, tiltData.table, fallbackRatios, billing) }));
     });
     timed("주소 갱신", () => syncUrl());
@@ -229,7 +234,21 @@ try {
     recompute();
   });
   tariffSel = renderTariffSelector(document.getElementById("tariff-panel"), tariffData, controller);
-  tariffSel.onChange(() => recompute()); // 계산 방식(누진·계절 요금표 / 한 단가)이나 기본요금 포함을 바꾸면 다시 계산
+  tariffSel.onChange(() => recompute());
+  // 설계안 비교: 현재 입력을 설계안으로 읽고(getCurrent), 저장한 설계안을 입력에 되돌려 넣는다(apply)
+  designPanel = createDesignPanel(document.getElementById("design-panel"), {
+    ctx: { tiltTable: tiltData.table, fallbackRatios, tariffData },
+    getCurrent: () => ({ name: "현재 입력", values: { ...state.values }, usage: [...state.usage], tariff: tariffSel ? tariffSel.getState() : null }),
+    apply: (d) => {
+      /** @type {Record<string, number>} */
+      const map = {};
+      for (const id of Object.keys(PARAM_TO_INPUT)) if (typeof d.values[id] === "number") map[id] = d.values[id];
+      controller.setValues(map);
+      usagePanel?.setUsage(d.usage);
+      tariffSel?.setState(d.tariff);
+      tabs.show("overview");
+    },
+  }); // 계산 방식(누진·계절 요금표 / 한 단가)이나 기본요금 포함을 바꾸면 다시 계산
   const tabs = initTabs(document.getElementById("sidebar"));
   quick = createQuickControls(document.getElementById("quick-panel"), controller, (name) => tabs.show(name));
   quick.sync(state.values);

@@ -20,7 +20,7 @@ const METHOD_SINGLE = "single";
  * @param {HTMLElement} container
  * @param {any} tariffData  data/tariffs.json
  * @param {import("./input-panel.js").InputController} controller
- * @returns {{ getState(): TariffState | null, setState(s: { id: string, tier: number, c: number, f: number, b?: 0 | 1, i?: 0 | 1 }): boolean, getBilling(): import("../core/billing.js").MonthBilling[] | null, onChange(fn: () => void): void }}
+ * @returns {{ getState(): TariffState | null, setState(s: { id: string, tier: number, c: number, f: number, b?: 0 | 1, i?: 0 | 1 } | null): boolean, getBilling(): import("../core/billing.js").MonthBilling[] | null, onChange(fn: () => void): void }}
  */
 export function renderTariffSelector(container, tariffData, controller) {
   /** @type {any[]} */
@@ -163,8 +163,14 @@ export function renderTariffSelector(container, tariffData, controller) {
         i: basicInput.checked ? 1 : 0,
       };
     },
-    /** 요금제 상태를 되살린다. 모르는 요금제 id면 아무것도 바꾸지 않고 false. b가 없는 옛 링크는 한 단가 방식 */
+    /** 요금제 상태를 되살린다. null이면 직접 입력으로 돌린다. 모르는 요금제 id면 아무것도 바꾸지 않고 false. b가 없는 옛 링크는 한 단가 방식 */
     setState(s) {
+      if (s === null) {
+        select.value = MANUAL;
+        controller.clearNote(PRICE_ID);
+        refresh();
+        return true;
+      }
       const tariff = tariffs.find((t) => t.id === s.id);
       if (!tariff) return false;
       select.value = s.id;
