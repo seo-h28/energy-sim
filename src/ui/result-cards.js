@@ -119,8 +119,8 @@ function buildCards(input, range) {
       `= ${won(net)}`,
     ]),
     card("연 평균 절감액", `${won(s.averageSavingKrw)}/년`, rangeText([lo.averageSavingKrw, s.averageSavingKrw, hi.averageSavingKrw], (v) => `${won(/** @type {number} */ (v))}/년`), [
-      "① 1년차 연 발전량 = 용량 × 연간 발전시간 × 방향 보정 × (1 − 추가 손실)",
-      `   = ${fmt(input.capacityKwp, 3)} × ${fmt(input.yieldKwhPerKwp, 2)} × ${fmt(input.orientationFactor, 2)} × (1 − ${fmt(input.lossRate, 3)}) = ${fmt(yearGen1, 1)} kWh`,
+      "① 1년차 연 발전량 = 용량 × 연간 발전시간(35° 기준) × 경사각 보정 × 방향 보정 × (1 − 추가 손실)",
+      `   = ${fmt(input.capacityKwp, 3)} × ${fmt(input.yieldKwhPerKwp, 2)} × ${fmt(input.tiltAnnualFactor ?? 1, 4)}(경사 ${fmt(input.tiltDeg ?? 35)}°) × ${fmt(input.userOrientationFactor ?? input.orientationFactor, 2)} × (1 − ${fmt(input.lossRate, 3)}) = ${fmt(yearGen1, 1)} kWh`,
       `② ${m + 1}월 발전량(발전이 가장 많은 달) = 연 발전량 × 그 달 비율 ${fmt(input.monthlyRatios[m] * 100, 2)}% = ${fmt(y1.gen[m], 1)} kWh`,
       `③ ${m + 1}월 자가소비 = min(발전량, 사용량 × 낮시간 비중) = min(${fmt(y1.gen[m], 1)}, ${fmt(input.monthlyUsageKwh[m])} × ${pct(shares.base)}) = ${fmt(y1.self[m], 1)} kWh, 잉여 ${fmt(y1.export[m], 1)} kWh`,
       `④ 12개월 합: 자가소비 ${fmt(tot.selfKwh, 1)} kWh, 잉여 ${fmt(tot.exportKwh, 1)} kWh`,

@@ -19,11 +19,18 @@
       "source": "PVGIS-ERA5(EU JRC) 부산, 1 kWp·경사 35°·정남향·시스템 손실 14% 조건의 연 발전량 1484.15 (사용자가 사이트에서 확인해 보고, docs/sources.md). 월별 분포는 data/monthly_yield_부산.json(Reference)"
     },
     "orientation_factor": {
-      "label": "방향 보정 (35° 남향 대비)",
+      "label": "방향 보정 (정남향 대비)",
       "value": 1,
       "unit": "배(0.8~1.0)",
       "status": "assumed",
       "source": "임의 가정. 위 연 발전량(35° 남향 기준)에 곱하는 배수이고 범위 0.8~1.0의 근거는 glasswallet 페이지의 '방위각·경사각·음영이 ±20% 수준으로 바꿀 수 있다'는 설명"
+    },
+    "tilt_deg": {
+      "label": "경사각",
+      "value": 35,
+      "unit": "도(0~90)",
+      "status": "assumed",
+      "source": "설계 입력. 기본 35°는 부산 PVGIS 표(5° 간격)에서 연 발전량이 가장 큰 각도. 경사각별 월별 발전량은 data/monthly_yield_tilt_부산.json([Sourced], PVGIS-ERA5 2005~2023 평균, 정남향)이고 5° 사이는 직선으로 이은 계산값. 연 발전량 입력(35° 기준)에 이 표의 상대 비율을 곱한다(src/core/tilt.js)"
     },
     "loss_rate": {
       "label": "추가 시스템 손실률",

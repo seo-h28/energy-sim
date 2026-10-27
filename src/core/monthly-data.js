@@ -1,4 +1,6 @@
 // @ts-check
+import { validateTiltTable } from "./tilt.js";
+
 // 월별 데이터 파일 불러오기·검사: 월별 발전 비율(data/monthly_yield_부산.json)과 월별 사용량 예시(data/monthly_usage_example.json).
 
 /**
@@ -48,6 +50,18 @@ export async function loadMonthlyYield(url = "data/monthly_yield_부산.json") {
   const errors = validateMonthlyYield(data);
   if (errors.length) throw new Error("monthly_yield 형식 오류:\n" + errors.join("\n"));
   return { ratios: data.months.map((/** @type {any} */ m) => m.ratio), annualKwhPerKwp: data.meta.annualKwhPerKwp, meta: data.meta };
+}
+
+/**
+ * 경사각별 월별 발전량 표(PVGIS, data/monthly_yield_tilt_부산.json).
+ * @param {string} [url]
+ * @returns {Promise<{ table: import("./tilt.js").TiltTable, meta: any }>}
+ */
+export async function loadTiltTable(url = "data/monthly_yield_tilt_부산.json") {
+  const data = await loadJson(url);
+  const errors = validateTiltTable(data);
+  if (errors.length) throw new Error("monthly_yield_tilt 형식 오류:\n" + errors.join("\n"));
+  return { table: { tilts: data.tilts, annualKwhPerKwp: data.annualKwhPerKwp, months: data.months }, meta: data.meta };
 }
 
 /**

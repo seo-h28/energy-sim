@@ -42,6 +42,10 @@ export function validateMonthlyInput(input) {
   } else if (Math.abs(ratios.reduce((a, b) => a + b, 0) - 1) > RATIO_SUM_TOLERANCE) {
     errors.push("monthlyRatios: 월별 발전 비율의 합이 1이 아님");
   }
+  // 경사각은 선택 항목(엔진 식에는 쓰지 않고 입력 단계의 월 비율·연 보정에서 쓰인다). 있으면 범위만 확인한다
+  if (/** @type {any} */ (input).tiltDeg !== undefined && !(/** @type {any} */ (input).tiltDeg >= 0 && /** @type {any} */ (input).tiltDeg <= 90)) {
+    errors.push(`tiltDeg: 경사각은 0~90도 (받은 값 ${/** @type {any} */ (input).tiltDeg})`);
+  }
   if (!(input.dayShare >= 0 && input.dayShare <= 1)) errors.push(`dayShare: 낮시간 사용 비중은 0~1 (받은 값 ${input.dayShare})`);
   return errors;
 }

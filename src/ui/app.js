@@ -2,7 +2,8 @@
 import { loadAssumptions } from "../core/assumptions.js";
 import { PARAM_TO_INPUT, toEngineInput } from "../core/params.js";
 import { validateMonthlyInput, validateDayShareRange, summarizeRange, seasonSummary } from "../core/seasonal.js";
-import { loadMonthlyYield, loadMonthlyUsage } from "../core/monthly-data.js";
+import { loadMonthlyYield, loadMonthlyUsage, loadTiltTable } from "../core/monthly-data.js";
+import { tiltProfile } from "../core/tilt.js";
 import { flowTotals } from "../core/flow.js";
 import { renderAssumptionsPanel } from "./assumptions-panel.js";
 import { renderInputPanel } from "./input-panel.js";
@@ -77,7 +78,7 @@ function renderFooter() {
 
 try {
   renderFooter();
-  const [data, tariffData, monthlyYield, usageExample] = await Promise.all([loadAssumptions(), loadTariffs(), loadMonthlyYield(), loadMonthlyUsage()]);
+  const [data, tariffData, monthlyYield, usageExample, tiltData] = await Promise.all([loadAssumptions(), loadTariffs(), loadMonthlyYield(), loadMonthlyUsage(), loadTiltTable()]);
 
   const cashChart = createCashflowChart(document.getElementById("chart-panel"));
   const monthlyChart = createMonthlyChart(document.getElementById("monthly-panel"));
@@ -151,7 +152,9 @@ try {
   }
 
   function recompute() {
-    const { input, dayShareLow, dayShareHigh } = toEngineInput(state.values, state.usage, monthlyYield.ratios);
+    // 경사각에 맞는 월별 발전 비율과 연 발전량 보정(PVGIS 표). 경사각이 범위 밖이면 입력 오류로 안내한다(비율은 기준 값으로 대신 둠)
+    const tilt = tiltProfile(tiltData.table, /** @type {number} */ (state.values.tilt_deg));
+    const { input, dayShareLow, dayShareHigh } = toEngineInput(state.values, state.usage, tilt ? tilt.ratios : monthlyYield.ratios, tilt ? tilt.annualFactor : 1);
     const errors = [...validateMonthlyInput(input), ...validateDayShareRange(dayShareLow, dayShareHigh)];
     // 같은 오류가 두 번 나오지 않게(낮시간 비중은 두 검사 모두 보지만 한 번만 보여준다)
     const unique = [...new Set(friendlyErrors(errors))];

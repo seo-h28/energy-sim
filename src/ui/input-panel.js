@@ -7,6 +7,7 @@ import { el } from "./dom.js";
 /** 슬라이더로 보여줄 항목과 범위. 방향 보정은 0.8~1.0으로 제한(spec 5.1) */
 const SLIDERS = {
   orientation_factor: { min: 0.8, max: 1.0, step: 0.01 },
+  tilt_deg: { min: 0, max: 90, step: 1 },
 };
 
 /** 숫자 입력칸의 허용 범위. 0~1 비율 항목은 상한 1 */
