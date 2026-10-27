@@ -80,3 +80,75 @@ export function energyFlow(p) {
     { label: "송전 후 지상에 도착", kwh: delivered, fraction: p.panelEfficiency * p.etaTx },
   ];
 }
+
+// ── 월별·계절 그림 ──
+
+/**
+ * 달(1~12)의 계절. 3~5월 봄, 6~8월 여름, 9~11월 가을, 12~2월 겨울(seasonal.js의 SEASONS와 같음).
+ * @param {number} month
+ * @returns {"spring" | "summer" | "autumn" | "winter"}
+ */
+export function seasonOfMonth(month) {
+  if (month >= 3 && month <= 5) return "spring";
+  if (month >= 6 && month <= 8) return "summer";
+  if (month >= 9 && month <= 11) return "autumn";
+  return "winter";
+}
+
+/**
+ * 월별 막대 높이(0~1): 12개월의 발전량·사용량 중 가장 큰 값을 1로 맞춘다. coverage는 그 달 사용량 중 태양광이 채운 몫(자가소비 ÷ 사용량).
+ * @param {{ gen: number[], usage: number[], self: number[] }} d  각 길이 12
+ * @returns {{ max: number, months: { month: number, season: string, genFraction: number, usageFraction: number, coverage: number }[] }}
+ */
+export function monthBars(d) {
+  const max = Math.max(...d.gen, ...d.usage, 0);
+  return {
+    max,
+    months: d.gen.map((g, i) => ({
+      month: i + 1,
+      season: seasonOfMonth(i + 1),
+      genFraction: max > 0 ? g / max : 0,
+      usageFraction: max > 0 ? d.usage[i] / max : 0,
+      coverage: d.usage[i] > 0 ? d.self[i] / d.usage[i] : 0,
+    })),
+  };
+}
+
+/**
+ * 계절 카드의 막대 비율(0~1): 4계절의 사용·발전 합 중 가장 큰 값을 1로.
+ * @param {{ id: string, usageKwh: number, genKwh: number }[]} seasons
+ * @returns {{ id: string, usageFraction: number, genFraction: number }[]}
+ */
+export function seasonBars(seasons) {
+  const max = Math.max(...seasons.map((x) => Math.max(x.usageKwh, x.genKwh)), 0);
+  return seasons.map((x) => ({ id: x.id, usageFraction: max > 0 ? x.usageKwh / max : 0, genFraction: max > 0 ? x.genKwh / max : 0 }));
+}
+
+/**
+ * 월별 발전·사용을 쉬운 문장으로(전문 용어 없이). 숫자는 모두 계산값이다.
+ * @param {{ gen: number[], usage: number[], self: number[], export: number[] }} d  각 길이 12(1~12월, 1년차)
+ * @returns {string[]}
+ */
+export function seasonStory(d) {
+  const k = (/** @type {number} */ n) => `${Math.round(n).toLocaleString("ko-KR")} kWh`;
+  const idxMax = (/** @type {number[]} */ a) => a.reduce((b, v, i) => (v > a[b] ? i : b), 0);
+  const idxMin = (/** @type {number[]} */ a) => a.reduce((b, v, i) => (v < a[b] ? i : b), 0);
+  const out = [];
+  const gMax = idxMax(d.gen);
+  const gMin = idxMin(d.gen);
+  out.push(`발전은 ${gMax + 1}월에 가장 많고(${k(d.gen[gMax])}) ${gMin + 1}월에 가장 적습니다(${k(d.gen[gMin])}).`);
+  const uMax = idxMax(d.usage);
+  out.push(`전기 사용은 ${uMax + 1}월에 가장 많습니다(${k(d.usage[uMax])}).`);
+  const surplus = d.export.map((v, i) => (v > 1e-9 ? i + 1 : 0)).filter((m) => m > 0);
+  out.push(
+    surplus.length > 0
+      ? `낮에 쓰는 전기보다 발전이 많아 한전으로 보내는 전기가 남는 달: ${surplus.join("·")}월.`
+      : "모든 달에서 발전한 전기를 그 달에 다 쓰는 것으로 계산됩니다(남는 전기 없음).",
+  );
+  const cov = d.usage.map((u, i) => (u > 0 ? d.self[i] / u : 0));
+  const cMax = idxMax(cov);
+  const cMin = idxMin(cov);
+  out.push(`태양광이 채우는 몫은 ${cMax + 1}월이 가장 크고(${Math.round(cov[cMax] * 100)}%) ${cMin + 1}월이 가장 작습니다(${Math.round(cov[cMin] * 100)}%).`);
+  return out;
+}
+

@@ -23,7 +23,7 @@ import { createCapacityCurve } from "./capacity-curve.js";
 import { createSensitivityPanel } from "./sensitivity-chart.js";
 import { createSpacePanel } from "./space-panel.js";
 import { createDesignPanel } from "./design-compare.js";
-import { renderStory, renderGlossary } from "./visuals.js";
+import { renderStory, renderGlossary, renderSeasons } from "./visuals.js";
 import { lcoeKrwPerKwh } from "../core/seasonal.js";
 import { createSystemDiagram } from "./diagram.js";
 import { SOURCE_GAP, ASOS_OVER_NASA } from "../core/uncertainty.js";
@@ -47,6 +47,7 @@ const resultPanel = document.getElementById("result-panel");
 const rangePanel = document.getElementById("range-panel");
 const balancePanel = document.getElementById("balance-panel");
 const storyPanel = document.getElementById("story-panel");
+const seasonPanel = document.getElementById("season-panel");
 const errorBox = document.getElementById("errors");
 const panel = document.getElementById("assumptions-panel");
 
@@ -180,6 +181,7 @@ try {
       rangePanel.replaceChildren();
       balancePanel.hidden = true;
       storyPanel.hidden = true;
+      seasonPanel.hidden = true;
       cancelHeavy();
       cashChart.hide();
       monthlyChart.hide();
@@ -195,6 +197,7 @@ try {
     const range = timed("계산(범위)", () => summarizeRange(withoutShare, dayShareLow, dayShareHigh));
     const base = range.base;
     timed("쉬운 요약", () => renderStory(storyPanel, { netInvestmentKrw: base.netInvestmentKrw, paybackYears: base.paybackYears, years: input.analysisYears, totalSavingKrw: base.totalSavingKrw, firstYearSavingKrw: base.firstYearSavingKrw }));
+    timed("계절 그림", () => renderSeasons(seasonPanel, { year1: base.year1, usage: state.usage, seasons: seasonSummary(base.year1, state.usage) }));
     timed("결과 카드", () => renderResultCards(resultPanel, input, range, countAssumed(state.values, data, state.usageIsExample)));
     timed("범위 표", () => renderRangeBoxes(rangePanel, input, range));
     timed("에너지 균형", () => renderBalance(balancePanel, { ...flowTotals(base.year1), usageKwh: state.usage.reduce((a, b) => a + b, 0) }));

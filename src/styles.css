@@ -343,3 +343,50 @@ table.assumptions details p { margin-top: 6px; color: var(--muted); font-size: 1
   .vis-headline { font-size: 20px; }
   .vis-bar-row, .vis-flow-row { grid-template-columns: minmax(0, 1fr); gap: 4px; }
 }
+
+/* ── 계절·달별 그림 ── */
+#season-panel { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 22px; }
+.vis-story { margin: 6px 0 12px; padding-left: 22px; font-size: 16.5px; line-height: 1.6; color: var(--text); }
+.vis-story li { margin: 4px 0; }
+.vis-legend-row { margin: 0 0 14px; font-size: 14.5px; color: var(--muted); display: flex; flex-wrap: wrap; align-items: center; gap: 6px 4px; }
+.vis-legend-item { display: inline-flex; align-items: center; gap: 6px; margin-right: 14px; }
+.vis-swatch { display: inline-block; width: 14px; height: 14px; border-radius: 4px; vertical-align: -2px; }
+.vis-swatch-use { background: #94a3b8; }
+.vis-swatch-gen { background: var(--warn); }
+.vis-swatch-self { background: #34d399; }
+.vis-seasons { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 14px; }
+.vis-season { background: var(--surface-2); border: 1px solid var(--border); border-radius: 14px; padding: 14px; }
+.vis-season-head { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+.vis-season-title { font-size: 18px; margin: 0; color: var(--text-strong); }
+.vis-srow { display: grid; grid-template-columns: 38px minmax(0, 1fr) auto; align-items: center; gap: 8px; margin: 6px 0; }
+.vis-srow-label { font-weight: 700; font-size: 14px; color: var(--text-strong); }
+.vis-srow-val { font-size: 13.5px; font-variant-numeric: tabular-nums; color: var(--text); white-space: nowrap; }
+.vis-sbar { position: relative; height: 100%; border-radius: 8px; overflow: hidden; }
+.vis-sbar-use { background: #94a3b8; }
+.vis-sbar-gen { background: var(--warn); }
+.vis-sbar-self { position: absolute; left: 0; top: 0; bottom: 0; background: #34d399; }
+.vis-season-line { margin: 8px 0 0; font-size: 14.5px; color: var(--muted); }
+.vis-ic-petal { fill: #f9a8d4; }
+.vis-ic-core { fill: var(--warn); }
+.vis-ic-stem { stroke: #4ade80; stroke-width: 3; stroke-linecap: round; fill: none; }
+.vis-ic-ray { stroke: var(--warn); stroke-width: 3; stroke-linecap: round; }
+.vis-ic-leaf { fill: #f97316; }
+.vis-ic-vein { stroke: #7c2d12; stroke-width: 1.8; stroke-linecap: round; fill: none; }
+.vis-ic-flake { stroke: #bae6fd; stroke-width: 2.4; stroke-linecap: round; }
+.vis-months { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); gap: 4px; align-items: end; margin-top: 8px; }
+.vis-mcol { display: flex; flex-direction: column; align-items: center; gap: 4px; min-width: 0; }
+.vis-mcol-icon { height: 20px; }
+.vis-mbars { display: flex; align-items: flex-end; justify-content: center; gap: 2px; width: 100%; height: 150px; border-bottom: 2px solid var(--border); }
+.vis-mbar { position: relative; flex: 1 1 0; max-width: 18px; border-radius: 4px 4px 0 0; }
+.vis-mbar-use { background: #94a3b8; }
+.vis-mbar-gen { background: var(--warn); overflow: hidden; }
+.vis-mbar-self { position: absolute; left: 0; right: 0; bottom: 0; background: #34d399; }
+.vis-mcol-month { font-size: 13px; font-weight: 700; color: var(--text-strong); }
+.vis-mcol-cov { font-size: 12px; color: var(--muted); font-variant-numeric: tabular-nums; }
+@media (max-width: 560px) {
+  .vis-months { gap: 2px; }
+  .vis-mcol-month { font-size: 11px; }
+  .vis-mcol-cov { font-size: 10px; }
+  .vis-mcol-icon svg { width: 14px; height: 14px; }
+  .vis-mbars { height: 120px; }
+}

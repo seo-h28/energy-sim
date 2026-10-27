@@ -1,6 +1,6 @@
 // 쉬운 그림들(SVG·HTML, 외부 이미지 없음): 결과 한 줄 요약과 투자 회수 타임라인, 처음 보는 사람을 위한 용어 그림,
 // 우주 비교의 실제 비율 궤도 그림·하루 햇빛 비교·에너지 흐름. 숫자는 계산기의 결과값을 그대로 옮기며(core/visual-data.js), 그림의 색·모양은 보조다.
-import { dayCompare, energyFlow, orbitGeometry, paybackTimeline, plainSummary } from "../core/visual-data.js";
+import { dayCompare, energyFlow, monthBars, orbitGeometry, paybackTimeline, plainSummary, seasonBars, seasonStory } from "../core/visual-data.js";
 import { el, fmt, svgEl } from "./dom.js";
 
 /** 번호 표시(원 안의 숫자) */
@@ -226,3 +226,123 @@ export function renderEnergyFlow(container, p) {
   });
   container.replaceChildren(el("h3", { class: "sub-heading" }, "1 m² 패널의 에너지는 어디로 줄어드나"), wrap, el("p", { class: "vis-note" }, "햇빛 → 전기(패널 효율) → 송전(송전 효율)을 거치며 줄어듭니다. 패널 효율과 송전 효율은 임의 가정이며, 아래 슬라이더로 바꿔 볼 수 있습니다."));
 }
+
+// ── 월별·계절 그림 ──
+
+/**
+ * 계절 아이콘(봄 꽃, 여름 해, 가을 단풍잎, 겨울 눈 결정). 글자와 함께 쓰므로 그림은 보조다.
+ * @param {"spring" | "summer" | "autumn" | "winter" | string} season
+ * @param {number} size  표시 크기 [px]
+ */
+export function seasonIcon(season, size) {
+  const svg = svgEl("svg", { viewBox: "0 0 48 48", width: size, height: size, class: `vis-ic vis-ic-${season}`, "aria-hidden": "true" });
+  if (season === "spring") {
+    for (let i = 0; i < 5; i++) {
+      const a = (i * 2 * Math.PI) / 5 - Math.PI / 2;
+      svg.append(svgEl("circle", { cx: 24 + Math.cos(a) * 11, cy: 22 + Math.sin(a) * 11, r: 7.5, class: "vis-ic-petal" }));
+    }
+    svg.append(svgEl("circle", { cx: 24, cy: 22, r: 6, class: "vis-ic-core" }), svgEl("path", { d: "M 24 34 L 24 46", class: "vis-ic-stem" }));
+  } else if (season === "summer") {
+    svg.append(svgEl("circle", { cx: 24, cy: 24, r: 10, class: "vis-ic-core" }));
+    for (let i = 0; i < 8; i++) {
+      const a = (i * Math.PI) / 4;
+      svg.append(svgEl("line", { x1: 24 + Math.cos(a) * 15, y1: 24 + Math.sin(a) * 15, x2: 24 + Math.cos(a) * 21, y2: 24 + Math.sin(a) * 21, class: "vis-ic-ray" }));
+    }
+  } else if (season === "autumn") {
+    svg.append(svgEl("path", { d: "M 24 4 C 36 12 42 24 36 36 C 32 42 28 44 24 44 C 20 44 16 42 12 36 C 6 24 12 12 24 4 Z", class: "vis-ic-leaf" }), svgEl("path", { d: "M 24 10 L 24 46 M 24 24 L 33 16 M 24 24 L 15 16 M 24 34 L 31 28 M 24 34 L 17 28", class: "vis-ic-vein" }));
+  } else {
+    for (let i = 0; i < 3; i++) {
+      const a = (i * Math.PI) / 3;
+      svg.append(svgEl("line", { x1: 24 + Math.cos(a) * 20, y1: 24 + Math.sin(a) * 20, x2: 24 - Math.cos(a) * 20, y2: 24 - Math.sin(a) * 20, class: "vis-ic-flake" }));
+    }
+    for (let i = 0; i < 6; i++) {
+      const a = (i * Math.PI) / 3;
+      const bx = 24 + Math.cos(a) * 12;
+      const by = 24 + Math.sin(a) * 12;
+      svg.append(svgEl("line", { x1: bx, y1: by, x2: bx + Math.cos(a + 0.9) * 5, y2: by + Math.sin(a + 0.9) * 5, class: "vis-ic-flake" }), svgEl("line", { x1: bx, y1: by, x2: bx + Math.cos(a - 0.9) * 5, y2: by + Math.sin(a - 0.9) * 5, class: "vis-ic-flake" }));
+    }
+  }
+  return svg;
+}
+
+/**
+ * 계절별 카드 4장 + 달별 막대 줄 + 쉬운 문장.
+ * @param {HTMLElement} container
+ * @param {{ year1: { gen: number[], self: number[], export: number[] }, usage: number[], seasons: { id: string, label: string, usageKwh: number, genKwh: number, selfKwh: number, savingKrw: number, selfSufficiency: number }[] }} d
+ */
+export function renderSeasons(container, d) {
+  const story = el("ul", { class: "vis-story" });
+  for (const line of seasonStory({ gen: d.year1.gen, usage: d.usage, self: d.year1.self, export: d.year1.export })) story.append(el("li", {}, line));
+
+  // 범례
+  const legend = el("p", { class: "vis-legend-row" });
+  for (const [cls, text] of [["vis-swatch-use", "전기 사용량"], ["vis-swatch-self", "발전한 전기 중 내가 쓰는 몫(자가소비)"], ["vis-swatch-gen", "발전한 전기 중 한전으로 보내는 남는 전기"]]) {
+    const item = el("span", { class: "vis-legend-item" });
+    item.append(el("span", { class: `vis-swatch ${cls}` }), document.createTextNode(text));
+    legend.append(item);
+  }
+
+  // 계절 카드
+  const bars = seasonBars(d.seasons);
+  const cards = el("div", { class: "vis-seasons" });
+  d.seasons.forEach((s, i) => {
+    const c = el("div", { class: `vis-season vis-season-${s.id}` });
+    const head = el("div", { class: "vis-season-head" });
+    head.append(seasonIcon(s.id, 44), el("h3", { class: "vis-season-title" }, s.label));
+    const bar = (/** @type {string} */ label, /** @type {number} */ frac, /** @type {number} */ kwh, /** @type {string} */ cls, /** @type {number} */ selfFrac) => {
+      const row = el("div", { class: "vis-srow" });
+      const track = el("div", { class: "vis-track" });
+      const b = el("div", { class: `vis-sbar ${cls}` });
+      b.style.width = `${Math.max(2, frac * 100)}%`;
+      if (selfFrac > 0) {
+        const inner = el("div", { class: "vis-sbar-self" });
+        inner.style.width = `${Math.min(100, selfFrac * 100)}%`;
+        b.append(inner);
+      }
+      track.append(b);
+      row.append(el("span", { class: "vis-srow-label" }, label), track, el("span", { class: "vis-srow-val" }, `${fmt(kwh)} kWh`));
+      return row;
+    };
+    c.append(
+      head,
+      bar("사용", bars[i].usageFraction, s.usageKwh, "vis-sbar-use", 0),
+      bar("발전", bars[i].genFraction, s.genKwh, "vis-sbar-gen", s.genKwh > 0 ? s.selfKwh / s.genKwh : 0),
+      el("p", { class: "vis-season-line" }, `태양광이 전기 사용의 ${fmt(s.selfSufficiency * 100)}%를 채웁니다`),
+      el("p", { class: "vis-season-line" }, `이 계절에 줄어드는 전기요금 약 ${fmt(s.savingKrw)}원`),
+    );
+    cards.append(c);
+  });
+
+  // 달별 막대 줄: 달마다 사용(회색)·발전(금색) 막대, 위에 계절 아이콘, 아래에 달과 채우는 몫
+  const mb = monthBars({ gen: d.year1.gen, usage: d.usage, self: d.year1.self });
+  const strip = el("div", { class: "vis-months", role: "img", "aria-label": "달별 전기 사용량과 태양광 발전량 막대" });
+  for (const m of mb.months) {
+    const col = el("div", { class: `vis-mcol vis-mcol-${m.season}` });
+    const icon = el("div", { class: "vis-mcol-icon" });
+    icon.append(seasonIcon(m.season, 20));
+    const area = el("div", { class: "vis-mbars" });
+    const use = el("div", { class: "vis-mbar vis-mbar-use", title: `${m.month}월 사용 ${fmt(d.usage[m.month - 1])} kWh` });
+    use.style.height = `${Math.max(2, m.usageFraction * 100)}%`;
+    const gen = el("div", { class: "vis-mbar vis-mbar-gen", title: `${m.month}월 발전 ${fmt(d.year1.gen[m.month - 1])} kWh` });
+    gen.style.height = `${Math.max(2, m.genFraction * 100)}%`;
+    const selfFrac = d.year1.gen[m.month - 1] > 0 ? d.year1.self[m.month - 1] / d.year1.gen[m.month - 1] : 0;
+    const inner = el("div", { class: "vis-mbar-self" });
+    inner.style.height = `${Math.min(100, selfFrac * 100)}%`;
+    gen.append(inner);
+    area.append(use, gen);
+    col.append(icon, area, el("div", { class: "vis-mcol-month" }, `${m.month}월`), el("div", { class: "vis-mcol-cov" }, `${Math.round(m.coverage * 100)}%`));
+    strip.append(col);
+  }
+
+  container.replaceChildren(
+    el("h2", {}, "계절로 보면"),
+    story,
+    legend,
+    cards,
+    el("h3", { class: "sub-heading" }, "달마다 보면"),
+    el("p", { class: "vis-note" }, "막대 아래 숫자는 그 달 전기 사용량 중 태양광이 채우는 몫입니다. 발전 막대는 초록(내가 쓰는 몫)과 금색(한전으로 보내는 남는 전기)으로 이루어집니다."),
+    strip,
+  );
+  container.hidden = false;
+}
+
