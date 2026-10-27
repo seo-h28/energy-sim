@@ -1,9 +1,9 @@
 // 앱 시작점: 데이터를 불러와 입력 패널·월별 사용량·결과·그래프·가정 목록을 화면에 띄우고, 입력이 바뀔 때마다 다시 계산한다.
 import { loadAssumptions } from "../core/assumptions.js";
-import { PARAM_TO_INPUT, toEngineInput } from "../core/params.js";
-import { validateMonthlyInput, validateDayShareRange, summarizeRange, seasonSummary } from "../core/seasonal.js";
+import { PARAM_TO_INPUT } from "../core/params.js";
+import { summarizeRange, seasonSummary } from "../core/seasonal.js";
 import { loadMonthlyYield, loadMonthlyUsage, loadTiltTable } from "../core/monthly-data.js";
-import { tiltProfile } from "../core/tilt.js";
+import { buildEngineInput } from "../core/build-input.js";
 import { flowTotals } from "../core/flow.js";
 import { renderAssumptionsPanel } from "./assumptions-panel.js";
 import { renderInputPanel } from "./input-panel.js";
@@ -19,6 +19,7 @@ import { renderBalance } from "./balance.js";
 import { createCashflowChart } from "./chart.js";
 import { createMonthlyChart } from "./monthly-chart.js";
 import { createCapacityCurve } from "./capacity-curve.js";
+import { createSensitivityPanel } from "./sensitivity-chart.js";
 import { createSystemDiagram } from "./diagram.js";
 import { SOURCE_GAP, ASOS_OVER_NASA } from "../core/uncertainty.js";
 import { el, fmt } from "./dom.js";
@@ -83,6 +84,7 @@ try {
   const cashChart = createCashflowChart(document.getElementById("chart-panel"));
   const monthlyChart = createMonthlyChart(document.getElementById("monthly-panel"));
   const curve = createCapacityCurve(document.getElementById("curve-panel"));
+  const sens = createSensitivityPanel(document.getElementById("sensitivity-panel"), () => recompute());
   const diagram = createSystemDiagram(document.getElementById("diagram-panel"));
 
   // 화면 상태: 입력칸 값, 값 설명(요금제 등), 월별 사용량
@@ -152,10 +154,8 @@ try {
   }
 
   function recompute() {
-    // 경사각에 맞는 월별 발전 비율과 연 발전량 보정(PVGIS 표). 경사각이 범위 밖이면 입력 오류로 안내한다(비율은 기준 값으로 대신 둠)
-    const tilt = tiltProfile(tiltData.table, /** @type {number} */ (state.values.tilt_deg));
-    const { input, dayShareLow, dayShareHigh } = toEngineInput(state.values, state.usage, tilt ? tilt.ratios : monthlyYield.ratios, tilt ? tilt.annualFactor : 1);
-    const errors = [...validateMonthlyInput(input), ...validateDayShareRange(dayShareLow, dayShareHigh)];
+    // 경사각에 맞는 월별 발전 비율·연 발전량 보정(PVGIS 표)을 적용한 엔진 입력과 입력 검사(민감도 분석과 같은 변환)
+    const { input, dayShareLow, dayShareHigh, errors } = buildEngineInput(state.values, state.usage, tiltData.table, monthlyYield.ratios);
     // 같은 오류가 두 번 나오지 않게(낮시간 비중은 두 검사 모두 보지만 한 번만 보여준다)
     const unique = [...new Set(friendlyErrors(errors))];
     errorBox.replaceChildren(...unique.map((msg) => el("li", {}, msg)));
@@ -169,6 +169,7 @@ try {
       cashChart.hide();
       monthlyChart.hide();
       curve.hide();
+      sens.hide();
       diagram.hide();
       syncUrl();
       return;
@@ -191,6 +192,7 @@ try {
       );
       timed("월별 그래프", () => monthlyChart.update({ year1: base.year1, usage: state.usage, seasons: seasonSummary(base.year1, state.usage), dayShare: range.dayShares.base }));
       timed("용량 곡선", () => curve.update({ input: withoutShare, dayShareLow, dayShareHigh, currentCapacity: input.capacityKwp }));
+      timed("민감도", () => sens.update({ values: state.values, usage: state.usage, toInput: (v, u) => buildEngineInput(v, u, tiltData.table, monthlyYield.ratios) }));
     });
     timed("주소 갱신", () => syncUrl());
   }
