@@ -54,6 +54,17 @@ export async function loadTiltTable(url = "data/monthly_yield_tilt_부산.json")
 }
 
 /**
+ * 연도별 일사 합계(ASOS 부산, data/annual_insolation_부산.json).
+ * @param {string} [url]
+ * @returns {Promise<{ years: import("./year-replay.js").YearRow[], meta: any }>}
+ */
+export async function loadAnnualInsolation(url = "data/annual_insolation_부산.json") {
+  const data = await loadJson(url);
+  if (!Array.isArray(data?.years) || data.years.some((/** @type {any} */ y) => !Number.isFinite(y.year) || !Number.isFinite(y.ghiKwhM2) || typeof y.used !== "boolean")) throw new Error("annual_insolation 형식 오류");
+  return { years: data.years, meta: data.meta };
+}
+
+/**
  * @param {string} [url]
  * @returns {Promise<{ usage: number[], meta: any }>}
  */

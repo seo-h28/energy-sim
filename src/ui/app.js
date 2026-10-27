@@ -2,7 +2,7 @@
 import { loadAssumptions } from "../core/assumptions.js";
 import { PARAM_TO_INPUT } from "../core/params.js";
 import { summarizeRange, seasonSummary } from "../core/seasonal.js";
-import { loadMonthlyUsage, loadTiltTable } from "../core/monthly-data.js";
+import { loadAnnualInsolation, loadMonthlyUsage, loadTiltTable } from "../core/monthly-data.js";
 import { tiltProfile, poaAtTilt, BASE_TILT_DEG } from "../core/tilt.js";
 import { buildEngineInput } from "../core/build-input.js";
 import { flowTotals } from "../core/flow.js";
@@ -23,6 +23,7 @@ import { createCapacityCurve } from "./capacity-curve.js";
 import { createSensitivityPanel } from "./sensitivity-chart.js";
 import { createSpacePanel } from "./space-panel.js";
 import { createDesignPanel } from "./design-compare.js";
+import { createYearReplayPanel } from "./year-replay-panel.js";
 import { renderInputGuide } from "./input-guide.js";
 import { renderStory, renderGlossary, renderSeasons, renderGap } from "./visuals.js";
 import { energyGap } from "../core/gap.js";
@@ -90,7 +91,7 @@ function renderFooter() {
 
 try {
   renderFooter();
-  const [data, tariffData, usageExample, tiltData] = await Promise.all([loadAssumptions(), loadTariffs(), loadMonthlyUsage(), loadTiltTable()]);
+  const [data, tariffData, usageExample, tiltData, insolation] = await Promise.all([loadAssumptions(), loadTariffs(), loadMonthlyUsage(), loadTiltTable(), loadAnnualInsolation()]);
   // 경사각이 범위 밖이어서 표를 못 쓸 때 대신 두는 월 비율(이때는 입력 오류 문구가 따로 나온다)
   const fallbackRatios = /** @type {number[]} */ (tiltProfile(tiltData.table, BASE_TILT_DEG)?.ratios);
 
@@ -98,6 +99,7 @@ try {
   const monthlyChart = createMonthlyChart(document.getElementById("monthly-panel"));
   const curve = createCapacityCurve(document.getElementById("curve-panel"));
   const sens = createSensitivityPanel(document.getElementById("sensitivity-panel"), () => recompute());
+  const yearPanel = createYearReplayPanel(/** @type {HTMLElement} */ (document.getElementById("year-panel")), insolation.years);
   const space = createSpacePanel(document.getElementById("space-panel"));
   renderGlossary(document.getElementById("glossary-panel"), { yieldKwhPerKwp: data.params.yield_kwh_per_kwp.value });
   /** @type {ReturnType<typeof createDesignPanel> | null} */
@@ -192,6 +194,7 @@ try {
       monthlyChart.hide();
       curve.hide();
       sens.hide();
+      yearPanel.hide();
       space.hide();
       designPanel?.refresh();
       diagram.hide();
@@ -233,6 +236,7 @@ try {
         }),
       );
       timed("설계안 비교", () => designPanel?.refresh());
+      timed("연도별 일사", () => yearPanel.update({ values: billing ? { ...state.values, tariff_scale: 1 } : state.values, usage: state.usage, toInput: (v, u) => buildEngineInput(v, u, tiltData.table, fallbackRatios, billing) }));
       timed("민감도", () => sens.update({ values: billing ? { ...state.values, tariff_scale: 1 } : state.values, usage: state.usage, toInput: (v, u) => buildEngineInput(v, u, tiltData.table, fallbackRatios, billing) }));
     });
     timed("주소 갱신", () => syncUrl());

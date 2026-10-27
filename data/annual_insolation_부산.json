@@ -1,0 +1,74 @@
+{
+  "meta": {
+    "station": "부산(ASOS 159)",
+    "source": "기상청 ASOS 시간자료 icsr(data.go.kr), tools/fetch_asos.py로 수집",
+    "status": "reference",
+    "note": "낮 시간 결측이 1%를 넘는 해는 제외. 평균 대비 비율은 JS에서 계산. 눈금 차이(NASA POWER 대비 약 +10%)와 해마다의 눈금 변화는 확인하지 못함.",
+    "maxMissingFraction": 0.01
+  },
+  "years": [
+    {
+      "year": 2015,
+      "ghiKwhM2": 1407.2,
+      "daylightHours": 4397,
+      "missingDaylightHours": 0,
+      "used": true
+    },
+    {
+      "year": 2016,
+      "ghiKwhM2": 1399.7,
+      "daylightHours": 4406,
+      "missingDaylightHours": 1,
+      "used": true
+    },
+    {
+      "year": 2017,
+      "ghiKwhM2": 1505.3,
+      "daylightHours": 4397,
+      "missingDaylightHours": 3,
+      "used": true
+    },
+    {
+      "year": 2018,
+      "ghiKwhM2": 1005.2,
+      "daylightHours": 4397,
+      "missingDaylightHours": 1149,
+      "used": false
+    },
+    {
+      "year": 2019,
+      "ghiKwhM2": 1613.4,
+      "daylightHours": 4397,
+      "missingDaylightHours": 0,
+      "used": true
+    },
+    {
+      "year": 2020,
+      "ghiKwhM2": 1586.2,
+      "daylightHours": 4406,
+      "missingDaylightHours": 8,
+      "used": true
+    },
+    {
+      "year": 2021,
+      "ghiKwhM2": 1588.9,
+      "daylightHours": 4397,
+      "missingDaylightHours": 16,
+      "used": true
+    },
+    {
+      "year": 2022,
+      "ghiKwhM2": 1655.9,
+      "daylightHours": 4397,
+      "missingDaylightHours": 22,
+      "used": true
+    },
+    {
+      "year": 2023,
+      "ghiKwhM2": 1589.1,
+      "daylightHours": 4397,
+      "missingDaylightHours": 6,
+      "used": true
+    }
+  ]
+}
