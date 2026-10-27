@@ -183,3 +183,24 @@ export function seasonSummary(year1, monthlyUsageKwh) {
     };
   });
 }
+
+/**
+ * LCOE(균등화 발전단가) [원/kWh] (spec 5.6): (순 투자비 + Σ 유지비 ÷ (1+r)^t) ÷ Σ 발전량(t) ÷ (1+r)^t, t = 1..분석 기간.
+ * 발전량은 총 발전량(자가소비+잉여)이고 효율저하·손실·방향 보정을 반영한다. 한전 단가와 나란히 놓고 볼 수 있는 "내가 만든 전기 1 kWh의 비용"이다.
+ * 발전량 합이 0이면 null.
+ * @param {Omit<MonthlyInput, "dayShare"> | MonthlyInput} input
+ * @returns {number | null}
+ */
+export function lcoeKrwPerKwh(input) {
+  const errors = validateMonthlyInput(/** @type {any} */ ({ dayShare: 0.5, ...input }));
+  if (errors.length) throw new RangeError("월별 입력 오류:\n" + errors.join("\n"));
+  const r = input.discountRate;
+  let cost = netInvestment(/** @type {any} */ (input));
+  let energy = 0;
+  for (let y = 1; y <= input.analysisYears; y++) {
+    const d = Math.pow(1 + r, y);
+    cost += input.omCostKrwPerYear / d;
+    energy += annualGeneration(/** @type {any} */ (input), y) / d;
+  }
+  return energy > 0 ? cost / energy : null;
+}

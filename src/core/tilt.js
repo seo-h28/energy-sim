@@ -14,6 +14,7 @@ export const BASE_TILT_DEG = 35;
  * @property {number[]} tilts            경사각 목록 [도], 0부터 90까지 오름차순
  * @property {number[]} annualKwhPerKwp  경사각별 연 발전량 [kWh/kWp]
  * @property {number[][]} months         경사각별 1~12월 발전량 [kWh/kWp/월]
+ * @property {number[]} [poaKwhM2]       경사각별 경사면 연 입사 에너지 [kWh/m²/년](PVGIS H(i)_y, 우주 비교의 지상 기준값). 없을 수도 있음
  */
 
 /**
@@ -30,6 +31,8 @@ export function validateTiltTable(data) {
   if (!Array.isArray(annualKwhPerKwp) || annualKwhPerKwp.length !== tilts.length) return ["annualKwhPerKwp의 길이가 tilts와 다름"];
   if (!Array.isArray(months) || months.length !== tilts.length) return ["months의 길이가 tilts와 다름"];
   const errors = [];
+  const poa = data.poaKwhM2;
+  if (poa !== undefined && (!Array.isArray(poa) || poa.length !== tilts.length || !poa.every((v) => Number.isFinite(v) && v > 0))) errors.push("poaKwhM2가 tilts와 같은 길이의 0보다 큰 숫자 목록이 아님");
   months.forEach((row, i) => {
     if (!Array.isArray(row) || row.length !== 12 || !row.every((v) => Number.isFinite(v) && v > 0)) {
       errors.push(`경사 ${tilts[i]}°의 월별 값이 0보다 큰 숫자 12개가 아님`);
@@ -70,4 +73,20 @@ export function tiltProfile(table, tiltDeg) {
   const sum = m.reduce((s, v) => s + v, 0);
   const baseSum = base.reduce((s, v) => s + v, 0);
   return { ratios: m.map((v) => v / sum), annualFactor: sum / baseSum, annualKwhPerKwp: sum };
+}
+
+/**
+ * 경사각의 경사면 연 입사 에너지 [kWh/m²/년]. 표의 칸 사이는 직선으로 잇는다.
+ * @param {TiltTable} table
+ * @param {number} tiltDeg
+ * @returns {number | null}  표에 poaKwhM2가 없거나 경사각이 범위 밖이면 null
+ */
+export function poaAtTilt(table, tiltDeg) {
+  const { tilts, poaKwhM2 } = table;
+  if (!poaKwhM2 || !Number.isFinite(tiltDeg) || tiltDeg < tilts[0] || tiltDeg > tilts[tilts.length - 1]) return null;
+  const hi = tilts.findIndex((t) => t >= tiltDeg);
+  if (tilts[hi] === tiltDeg) return poaKwhM2[hi];
+  const lo = hi - 1;
+  const w = (tiltDeg - tilts[lo]) / (tilts[hi] - tilts[lo]);
+  return poaKwhM2[lo] + (poaKwhM2[hi] - poaKwhM2[lo]) * w;
 }

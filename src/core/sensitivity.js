@@ -7,7 +7,7 @@
 // 연 발전량은 일사 자료 두 출처의 격차(≈10%), 방향 보정은 슬라이더 허용 범위 전체(0.8~1.0), 낮시간 비중은 이미 정해 둔 하한~상한,
 // 경사각은 기준 ±10°(0~90°로 자름)를 쓴다.
 
-import { summarizeRange } from "./seasonal.js";
+import { summarizeMonthly } from "./seasonal.js";
 import { LOW_GENERATION_FACTOR } from "./uncertainty.js";
 
 /** 상대 변수(전기요금, 설치비, 월별 사용량)의 기본 변화 폭: ±20% */
@@ -136,8 +136,9 @@ export function tornado(baseValues, usage, toInput, rel = DEFAULT_RELATIVE_RANGE
   const evaluate = (/** @type {Record<string, number | null | undefined>} */ values, /** @type {number[]} */ u) => {
     const r = toInput(values, u);
     if (r.errors.length) return { errors: r.errors };
+    // 기준 값만 필요하므로 하한·상한까지 계산하는 summarizeRange 대신 가운데 값(기준)만 계산한다(화면의 기준 결과와 같은 값, 계산량 1/3)
     const { dayShare: _unused, ...withoutShare } = r.input;
-    const s = summarizeRange(withoutShare, r.dayShareLow, r.dayShareHigh).base;
+    const s = summarizeMonthly({ ...withoutShare, dayShare: (r.dayShareLow + r.dayShareHigh) / 2 });
     return { npv: s.npvKrw, payback: s.paybackYears };
   };
   const base = evaluate(baseValues, usage);

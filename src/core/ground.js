@@ -29,12 +29,3 @@ export function annualGeneration(input, year) {
   );
 }
 
-/**
- * 1년차부터 years년차까지의 연 발전량 배열 [kWh]. 인덱스 0이 1년차.
- * @param {GenerationInput} input
- * @param {number} years
- * @returns {number[]}
- */
-export function generationSeries(input, years) {
-  return Array.from({ length: years }, (_, i) => annualGeneration(input, i + 1));
-}

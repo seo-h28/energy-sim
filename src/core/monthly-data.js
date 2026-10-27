@@ -42,17 +42,6 @@ async function loadJson(url) {
 }
 
 /**
- * @param {string} [url]
- * @returns {Promise<{ ratios: number[], annualKwhPerKwp: number, meta: any }>}
- */
-export async function loadMonthlyYield(url = "data/monthly_yield_부산.json") {
-  const data = await loadJson(url);
-  const errors = validateMonthlyYield(data);
-  if (errors.length) throw new Error("monthly_yield 형식 오류:\n" + errors.join("\n"));
-  return { ratios: data.months.map((/** @type {any} */ m) => m.ratio), annualKwhPerKwp: data.meta.annualKwhPerKwp, meta: data.meta };
-}
-
-/**
  * 경사각별 월별 발전량 표(PVGIS, data/monthly_yield_tilt_부산.json).
  * @param {string} [url]
  * @returns {Promise<{ table: import("./tilt.js").TiltTable, meta: any }>}
@@ -61,7 +50,7 @@ export async function loadTiltTable(url = "data/monthly_yield_tilt_부산.json")
   const data = await loadJson(url);
   const errors = validateTiltTable(data);
   if (errors.length) throw new Error("monthly_yield_tilt 형식 오류:\n" + errors.join("\n"));
-  return { table: { tilts: data.tilts, annualKwhPerKwp: data.annualKwhPerKwp, months: data.months }, meta: data.meta };
+  return { table: { tilts: data.tilts, annualKwhPerKwp: data.annualKwhPerKwp, months: data.months, poaKwhM2: data.poaKwhM2 }, meta: data.meta };
 }
 
 /**
