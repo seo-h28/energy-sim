@@ -4,6 +4,7 @@
 // 계산은 src/core/designs.js(화면의 결과 카드와 같은 계산).
 import { readTheme } from "./theme.js";
 import { MAX_DESIGNS, cleanName, compareDesigns, sanitizeDesigns } from "../core/designs.js";
+import { designBars } from "../core/visual-data.js";
 import { el, fmt } from "./dom.js";
 
 const STORAGE_KEY = "sim.designs.v1";
@@ -61,6 +62,7 @@ export function createDesignPanel(container, deps) {
   const message = el("p", { class: "card-note", role: "status" });
   const saveRow = el("div", { class: "design-save-row" });
   saveRow.append(nameInput, saveBtn);
+  const barsWrap = el("div", { class: "design-bars" });
   const tableWrap = el("div", { class: "table-wrap" });
   const canvas = el("canvas", { role: "img", "aria-label": "설계안별 누적 현금흐름" });
   const box = el("div", { class: "chart-box" });
@@ -71,6 +73,7 @@ export function createDesignPanel(container, deps) {
     el("p", { class: "card-note" }, `지금 입력한 설계를 저장해 두고(최대 ${MAX_DESIGNS}개) 나란히 비교합니다. 입력 화면에서 값을 바꾼 뒤 저장하면 설계안이 늘고, "현재 입력" 열은 지금 입력값을 따라 바뀝니다. 저장한 설계안은 이 브라우저에만 보관되고 서버로 보내지 않습니다.`),
     saveRow,
     message,
+    barsWrap,
     tableWrap,
     legendNote,
     box,
@@ -173,6 +176,25 @@ export function createDesignPanel(container, deps) {
     row("NPV 범위 (하한 ~ 상한)", (r) => `${won(r.npvLow)} ~ ${won(r.npvHigh)}`);
     row("LCOE (원/kWh)", (r) => (r.lcoeKrwPerKwh === null ? "-" : fmt(r.lcoeKrwPerKwh, 1)), best.lcoe);
     tableWrap.replaceChildren(table);
+
+    // 쉬운 그림: 설계안별 NPV 막대(길수록 좋음)와 회수기간 막대(짧을수록 좋음). ★는 표와 같은 1등 표시
+    /** @param {string} title @param {"npv" | "payback"} metric @param {number[]} bestIdx */
+    const barBlock = (title, metric, bestIdx) => {
+      const block = el("div", { class: "design-bar-block" }, "");
+      block.append(el("h3", { class: "sub-heading" }, title));
+      for (const b of designBars(results, metric, bestIdx)) {
+        const row = el("div", { class: "vis-bar-row" });
+        const bar = el("div", { class: `vis-bar ${b.best ? "vis-bar-space" : "vis-bar-ground"}` });
+        bar.style.width = `${b.fraction === 0 ? 0 : Math.max(2, b.fraction * 100)}%`;
+        const track = el("div", { class: "vis-track" });
+        track.append(bar);
+        const text = metric === "npv" ? (b.value === null ? "-" : won(b.value)) : years(b.value);
+        row.append(el("span", { class: "vis-bar-label" }, `${b.best ? "★ " : ""}${b.name}`), track, el("span", { class: "vis-bar-text" }, text));
+        block.append(row);
+      }
+      return block;
+    };
+    barsWrap.replaceChildren(barBlock("NPV: 길수록 좋음", "npv", best.npv), barBlock("원금 회수기간: 짧을수록 좋음(막대 없음 = 회수 불가)", "payback", best.payback));
 
     // 누적 현금흐름 그래프(입력 오류인 설계안은 뺀다)
     const lines = results.map((r, i) => ({ r, i })).filter((x) => x.r.ok);

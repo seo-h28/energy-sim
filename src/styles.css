@@ -406,3 +406,4 @@ table.assumptions details p { margin-top: 6px; color: var(--muted); font-size: 1
 .vis-gap-surplus { background: transparent; border: 2px dashed var(--warn); border-bottom: 0; }
 .vis-gapmonths .vis-mcol-cov { color: #fca5a5; }
 @media (max-width: 560px) { .vis-gapbars { height: 120px; } }
+.design-bar-block { margin: 8px 0 14px; }

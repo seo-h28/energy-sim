@@ -180,3 +180,22 @@ export function gapStory(g, a) {
   return out;
 }
 
+
+// ── 설계안 비교 그림 ──
+
+/**
+ * 설계안별 막대 한 줄(이름, 값, 막대 길이 0~1, 항목 1등 여부). 입력 오류인 설계안은 뺀다.
+ * 길이는 보이는 값 중 절댓값이 가장 큰 값을 1로 한 비율이다(0 미만 값은 막대 대신 값 글자로 알린다).
+ * @param {Array<{ ok: boolean, name: string, npvKrw?: number, paybackYears?: number | null }>} results
+ * @param {"npv" | "payback"} metric
+ * @param {number[]} bestIdx  results 안의 1등 위치
+ * @returns {Array<{ name: string, value: number | null, fraction: number, best: boolean }>}
+ */
+export function designBars(results, metric, bestIdx) {
+  const rows = results
+    .map((r, i) => ({ r, i }))
+    .filter((x) => x.r.ok)
+    .map(({ r, i }) => ({ name: r.name, value: (metric === "npv" ? r.npvKrw : r.paybackYears) ?? null, best: bestIdx.includes(i) }));
+  const max = Math.max(0, ...rows.map((x) => (x.value === null ? 0 : Math.abs(x.value))));
+  return rows.map((x) => ({ ...x, fraction: x.value === null || max === 0 || (metric === "npv" && x.value < 0) ? 0 : Math.abs(x.value) / max }));
+}
