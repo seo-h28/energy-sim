@@ -23,6 +23,7 @@ import { createCapacityCurve } from "./capacity-curve.js";
 import { createSensitivityPanel } from "./sensitivity-chart.js";
 import { createSpacePanel } from "./space-panel.js";
 import { createDesignPanel } from "./design-compare.js";
+import { renderStory, renderGlossary } from "./visuals.js";
 import { lcoeKrwPerKwh } from "../core/seasonal.js";
 import { createSystemDiagram } from "./diagram.js";
 import { SOURCE_GAP, ASOS_OVER_NASA } from "../core/uncertainty.js";
@@ -45,6 +46,7 @@ const inputPanel = document.getElementById("input-panel");
 const resultPanel = document.getElementById("result-panel");
 const rangePanel = document.getElementById("range-panel");
 const balancePanel = document.getElementById("balance-panel");
+const storyPanel = document.getElementById("story-panel");
 const errorBox = document.getElementById("errors");
 const panel = document.getElementById("assumptions-panel");
 
@@ -92,6 +94,7 @@ try {
   const curve = createCapacityCurve(document.getElementById("curve-panel"));
   const sens = createSensitivityPanel(document.getElementById("sensitivity-panel"), () => recompute());
   const space = createSpacePanel(document.getElementById("space-panel"));
+  renderGlossary(document.getElementById("glossary-panel"), { yieldKwhPerKwp: data.params.yield_kwh_per_kwp.value });
   /** @type {ReturnType<typeof createDesignPanel> | null} */
   let designPanel = null;
   const diagram = createSystemDiagram(document.getElementById("diagram-panel"));
@@ -176,6 +179,7 @@ try {
       renderResultPlaceholder(resultPanel);
       rangePanel.replaceChildren();
       balancePanel.hidden = true;
+      storyPanel.hidden = true;
       cancelHeavy();
       cashChart.hide();
       monthlyChart.hide();
@@ -190,6 +194,7 @@ try {
     const { dayShare: _unused, ...withoutShare } = input;
     const range = timed("계산(범위)", () => summarizeRange(withoutShare, dayShareLow, dayShareHigh));
     const base = range.base;
+    timed("쉬운 요약", () => renderStory(storyPanel, { netInvestmentKrw: base.netInvestmentKrw, paybackYears: base.paybackYears, years: input.analysisYears, totalSavingKrw: base.totalSavingKrw, firstYearSavingKrw: base.firstYearSavingKrw }));
     timed("결과 카드", () => renderResultCards(resultPanel, input, range, countAssumed(state.values, data, state.usageIsExample)));
     timed("범위 표", () => renderRangeBoxes(rangePanel, input, range));
     timed("에너지 균형", () => renderBalance(balancePanel, { ...flowTotals(base.year1), usageKwh: state.usage.reduce((a, b) => a + b, 0) }));

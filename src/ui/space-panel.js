@@ -5,6 +5,7 @@ import { readTheme } from "./theme.js";
 import { STATUS_LABELS } from "../core/assumptions.js";
 import { SPACE_CONSTANTS, GEO_ECLIPSE_MAX_LOSS, allowedCost, allowedCostCurve, solarFluxAtAu, spaceAnnualIncident } from "../core/space.js";
 import { el, fmt } from "./dom.js";
+import { renderDayCompare, renderEnergyFlow, renderOrbit } from "./visuals.js";
 
 const T = readTheme();
 const COLORS = { line: T.primary, marker: T.dark, grid: T.grid, text: T.text, panel: T.panel };
@@ -64,6 +65,10 @@ export function createSpacePanel(container) {
   banner.append(el("strong", {}, "SIMULATION · 사고실험 · 입력값은 가정"), el("span", { class: "space-badge" }, "Thought Experiment: Space Solar Power"));
   const intro = el("p", { class: "card-note" }, "같은 패널 1 m²가 대기와 밤이 없는 정지궤도에서 받는 에너지와 부산 지상에서 받는 에너지를 비교하고, 우주 태양광이 지상과 같은 발전 단가가 되려면 설비 비용이 얼마 이하여야 하는지(목표치)만 계산합니다. 우주 설비의 비용·효율·실현 가능성은 예측하지 않습니다.");
   const message = el("p", { class: "card-note" });
+  const orbitBox = el("div", { class: "vis-section" });
+  renderOrbit(orbitBox);
+  const dayBox = el("div", { class: "vis-section" });
+  const flowBox = el("div", { class: "vis-section" });
   const tableWrap = el("div", { class: "table-wrap" });
   const readout = el("p", { class: "space-readout" });
   const canvas = el("canvas", { role: "img", "aria-label": "송전 효율별 허용 설비 비용(목표치) 곡선" });
@@ -92,7 +97,7 @@ export function createSpacePanel(container) {
       "이 모드는 지상 태양광과 비교하기 위한 이론적 사고실험입니다. 우주 태양광의 비용이나 효율을 예측하지 않으며, '지상과 같은 단가가 되려면 필요한 조건(목표치)'만 계산합니다.",
     ].map((t) => el("li", {}, t)),
   );
-  container.replaceChildren(el("h2", {}, "우주 비교: 대기와 밤이 없다면"), banner, intro, message, tableWrap, el("h3", { class: "sub-heading" }, "지상과 같은 단가가 되려면: 허용 설비 비용(목표치)"), controls, etaBox, readout, box, el("h3", { class: "sub-heading" }, "쓴 값과 출처 상태"), constWrap, formulas, el("h3", { class: "sub-heading" }, "하지 않는 것과 한계"), limits);
+  container.replaceChildren(el("h2", {}, "우주 비교: 대기와 밤이 없다면"), banner, intro, orbitBox, dayBox, message, tableWrap, el("h3", { class: "sub-heading" }, "지상과 같은 단가가 되려면: 허용 설비 비용(목표치)"), controls, etaBox, flowBox, readout, box, el("h3", { class: "sub-heading" }, "쓴 값과 출처 상태"), constWrap, formulas, el("h3", { class: "sub-heading" }, "하지 않는 것과 한계"), limits);
 
   const chart = new Chart(canvas, {
     data: {
@@ -147,6 +152,9 @@ export function createSpacePanel(container) {
     row("사용 지점까지의 손실", "없음(현장 소비)", "× 송전 효율 η (아래 곡선의 가로축)");
     row("비용", a.lcoeKrwPerKwh === null ? "계산할 수 없음" : `설계 LCOE ${num(a.lcoeKrwPerKwh, 1)}원/kWh (${a.billing ? "전기요금은 월별 요금표로 계산 중" : `입력 전기요금 ${num(a.priceKrwPerKwh)}원/kWh`})`, "예측하지 않음 (목표치만 계산)");
     tableWrap.replaceChildren(table);
+    renderDayCompare(dayBox, { groundKwhM2Year: a.groundPoaKwhM2, spaceKwhM2Year: okInputs ? spaceInc : 0 });
+    if (okInputs) renderEnergyFlow(flowBox, { incidentKwhM2Year: spaceInc, panelEfficiency: eff, etaTx: eta });
+    else flowBox.replaceChildren();
     message.textContent = a.groundPoaKwhM2 === null ? "지상 경사면 입사 자료를 찾지 못했습니다(경사각 확인)." : "입사 에너지는 같은 면적(1 m²)이 받는 빛의 양이며 패널 효율을 곱하기 전의 값입니다. 우주 쪽은 일조율 1이면 약 6.5배입니다(지상은 대기·구름·밤, 우주는 식만 있음).";
 
     // 곡선과 읽는 지점
