@@ -7,11 +7,14 @@
 //          절감[m] = 자가소비[m] × 전기요금(y) + 잉여[m] × 판매단가
 // 연 절감(y) = Σ절감[m] − 연 유지비.  이후 현금흐름·회수기간·NPV는 finance.js와 같다.
 //
-// 단순화(화면에 공개): 사용량은 해마다 같고, 요금은 단일 단가(누진제는 S13에서 tariff 함수를 바꿔 끼움),
+// 요금: 기본은 단일 단가. monthlyBilling(12개월 요금표, billing.js)이 있으면 누진·계절 요금으로
+//        절감[m] = (요금(사용량[m]) − 요금(사용량[m] − 자가소비[m])) × 요금 상승 + 잉여[m] × 판매단가 로 계산한다(S13).
+// 단순화(화면에 공개): 사용량은 해마다 같고,
 // 월 단위 합산은 낮 발전·저녁 사용의 시간대 차이를 완전히 반영하지 못하는 근사다.
 
 import { annualGeneration } from "./ground.js";
 import { netInvestment, summaryFromFlows, validateFinanceInput } from "./finance.js";
+import { billKrw, validateMonthlyBilling } from "./billing.js";
 
 /**
  * @typedef {Omit<import("./finance.js").FinanceInput, "selfConsumptionRate"> & {
@@ -20,9 +23,11 @@ import { netInvestment, summaryFromFlows, validateFinanceInput } from "./finance
  *   dayShare: number,
  * }} MonthlyInput
  * monthlyUsageKwh: 1~12월 전기 사용량 [kWh], monthlyRatios: 1~12월 발전 비율(합 1), dayShare: 낮시간 사용 비중(0~1)
+ * monthlyBilling(선택): 1~12월 요금표(billing.js). 있으면 전기요금 단가 대신 월별 요금표로 절감을 계산한다. billScale(선택, 기본 1): 요금표 전체에 곱하는 배수(민감도용)
  */
 
 const MONTHS = 12;
+/** @typedef {import("./billing.js").MonthBilling} MonthBilling */
 const RATIO_SUM_TOLERANCE = 1e-6;
 
 /**
@@ -46,6 +51,8 @@ export function validateMonthlyInput(input) {
   if (/** @type {any} */ (input).tiltDeg !== undefined && !(/** @type {any} */ (input).tiltDeg >= 0 && /** @type {any} */ (input).tiltDeg <= 90)) {
     errors.push(`tiltDeg: 경사각은 0~90도 (받은 값 ${/** @type {any} */ (input).tiltDeg})`);
   }
+  const billing = /** @type {any} */ (input).monthlyBilling;
+  if (billing !== undefined) errors.push(...validateMonthlyBilling(billing));
   if (!(input.dayShare >= 0 && input.dayShare <= 1)) errors.push(`dayShare: 낮시간 사용 비중은 0~1 (받은 값 ${input.dayShare})`);
   return errors;
 }
@@ -58,7 +65,11 @@ export function validateMonthlyInput(input) {
  */
 export function monthlyBreakdown(input, year) {
   const yearGen = annualGeneration(input, year);
-  const price = input.electricityPriceKrwPerKwh * Math.pow(1 + input.priceEscalationRate, year - 1);
+  const escalation = Math.pow(1 + input.priceEscalationRate, year - 1);
+  const price = input.electricityPriceKrwPerKwh * escalation;
+  /** @type {MonthBilling[] | undefined} */
+  const billing = /** @type {any} */ (input).monthlyBilling;
+  const billScale = /** @type {any} */ (input).billScale ?? 1;
   /** @type {number[]} */ const gen = [];
   /** @type {number[]} */ const self = [];
   /** @type {number[]} */ const exp = [];
@@ -69,8 +80,10 @@ export function monthlyBreakdown(input, year) {
     gen.push(g);
     self.push(s);
     exp.push(g - s);
-    // 단일 단가. 누진제로 바꿀 때는 이 한 줄(요금 계산)만 교체한다(S13)
-    saving.push(s * price + (g - s) * input.feedInPriceKrwPerKwh);
+    const u = input.monthlyUsageKwh[m];
+    // 월별 요금표가 있으면 "요금(사용량) − 요금(사용량 − 자가소비)", 없으면 단일 단가(S13)
+    const bill = billing ? escalation * billScale * (billKrw(billing[m], u) - billKrw(billing[m], u - s)) : s * price;
+    saving.push(bill + (g - s) * input.feedInPriceKrwPerKwh);
   }
   return { gen, self, export: exp, saving };
 }

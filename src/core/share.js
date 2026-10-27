@@ -14,7 +14,7 @@ const MAX_CURVE_KWP = 200;
  * @typedef {Object} ShareState
  * @property {Record<string, number>} p                       기본값과 다른 입력칸 값(가정 레지스트리의 키: 값)
  * @property {number[]} [u]                                   월별 사용량 12개(예시가 아닐 때만)
- * @property {{ id: string, tier: number, c: number, f: number }} [t]  요금제 선택(id, 주택용 단계, 기후환경요금, 연료비조정요금)
+ * @property {{ id: string, tier: number, c: number, f: number, b?: 0 | 1, i?: 0 | 1 }} [t]  요금제 선택(id, 주택용 단계, 기후환경요금, 연료비조정요금, 월별 요금표 계산 여부 b, 주택용 기본요금 포함 여부 i). b가 없으면(옛 링크) 단일 단가
  * @property {number} [m]                                     용량 곡선의 탐색 최대 용량(직접 지정했을 때만)
  */
 
@@ -88,7 +88,11 @@ export function decodeShare(hash, knownParamIds) {
     if (!t || typeof t.id !== "string" || !Number.isInteger(t.tier) || t.tier < 0 || t.tier > MAX_TIER || !isNum(t.c) || t.c < 0 || !isNum(t.f) || t.f < 0) {
       return { ok: false, error: "공유 링크의 요금제 정보가 올바르지 않습니다." };
     }
+    const flag = (/** @type {any} */ v) => v === undefined || v === 0 || v === 1;
+    if (!flag(t.b) || !flag(t.i)) return { ok: false, error: "공유 링크의 요금제 정보가 올바르지 않습니다." };
     state.t = { id: t.id, tier: t.tier, c: t.c, f: t.f };
+    if (t.b !== undefined) state.t.b = t.b;
+    if (t.i !== undefined) state.t.i = t.i;
   }
   if (data.m !== undefined) {
     if (!isNum(data.m) || data.m <= 0 || data.m > MAX_CURVE_KWP) return { ok: false, error: "공유 링크의 탐색 범위가 올바르지 않습니다." };

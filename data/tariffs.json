@@ -6,22 +6,30 @@
   },
   "adders": {
     "climateKrwPerKwh": {
-      "label": "기후환경요금", "value": 9, "unit": "원/kWh",
+      "label": "기후환경요금",
+      "value": 9,
+      "unit": "원/kWh",
       "status": "reference",
       "source": "요금표 계산 예시에 쓰인 값(예시). 매년 바뀌며 현재 값은 한전ON 게시를 확인해야 함"
     },
     "fuelAdjustmentKrwPerKwh": {
-      "label": "연료비조정요금", "value": 5, "unit": "원/kWh",
+      "label": "연료비조정요금",
+      "value": 5,
+      "unit": "원/kWh",
       "status": "reference",
       "source": "요금표 계산 예시에 쓰인 값(예시). 분기마다 바뀌며(±5원/kWh 범위) 현재 값은 한전ON 게시를 확인해야 함"
     },
     "vatRate": {
-      "label": "부가가치세", "value": 0.1, "unit": "비율(0~1)",
+      "label": "부가가치세",
+      "value": 0.1,
+      "unit": "비율(0~1)",
       "status": "sourced",
       "source": "요금표 청구금액 계산식: 전기요금계의 10% (2024-07-01 요금표)"
     },
     "fundRate": {
-      "label": "전력산업기반기금", "value": 0.032, "unit": "비율(0~1)",
+      "label": "전력산업기반기금",
+      "value": 0.032,
+      "unit": "비율(0~1)",
       "status": "sourced",
       "source": "요금표 청구금액 계산식: 전기요금계의 3.2% (2024-07-01 요금표)"
     }
@@ -34,15 +42,50 @@
       "status": "sourced",
       "source": "한전 주택용 전기요금표(저압, 2024-07-01 시행)",
       "tiers": [
-        { "label": "1단계", "energyKrwPerKwh": 120.0, "basicKrwPerHousehold": 910 },
-        { "label": "2단계", "energyKrwPerKwh": 214.6, "basicKrwPerHousehold": 1600 },
-        { "label": "3단계", "energyKrwPerKwh": 307.3, "basicKrwPerHousehold": 7300 }
+        {
+          "label": "1단계",
+          "energyKrwPerKwh": 120.0,
+          "basicKrwPerHousehold": 910
+        },
+        {
+          "label": "2단계",
+          "energyKrwPerKwh": 214.6,
+          "basicKrwPerHousehold": 1600
+        },
+        {
+          "label": "3단계",
+          "energyKrwPerKwh": 307.3,
+          "basicKrwPerHousehold": 7300
+        }
       ],
       "tierLimitsKwh": {
-        "other": { "note": "기타계절(1/1~6/30, 9/1~12/31)", "tier1Upto": 200, "tier2Upto": 400 },
-        "summer": { "note": "하계(7/1~8/31)", "tier1Upto": 300, "tier2Upto": 450 }
+        "other": {
+          "note": "기타계절(1/1~6/30, 9/1~12/31)",
+          "tier1Upto": 200,
+          "tier2Upto": 400
+        },
+        "summer": {
+          "note": "하계(7/1~8/31)",
+          "tier1Upto": 300,
+          "tier2Upto": 450,
+          "months": [
+            7,
+            8
+          ]
+        }
       },
-      "superUser": { "overKwh": 1000, "energyKrwPerKwh": 736.2, "note": "동계(12/1~2월 말)와 하계에 1,000kWh 초과분에 적용" }
+      "superUser": {
+        "overKwh": 1000,
+        "energyKrwPerKwh": 736.2,
+        "note": "동계(12/1~2월 말)와 하계에 1,000kWh 초과분에 적용",
+        "months": [
+          7,
+          8,
+          12,
+          1,
+          2
+        ]
+      }
     },
     {
       "id": "general_a_low",
@@ -51,8 +94,31 @@
       "status": "sourced",
       "source": "한전 전기요금표(종합) 일반용전력(갑) I 저압(2024-07-01 시행)",
       "basicKrwPerKw": 6160,
-      "seasonRatesKrwPerKwh": { "summer": 132.4, "shoulder": 91.9, "winter": 119.0 },
-      "seasonMonths": { "summer": [6, 7, 8], "shoulder": [3, 4, 5, 9, 10], "winter": [11, 12, 1, 2] }
+      "seasonRatesKrwPerKwh": {
+        "summer": 132.4,
+        "shoulder": 91.9,
+        "winter": 119.0
+      },
+      "seasonMonths": {
+        "summer": [
+          6,
+          7,
+          8
+        ],
+        "shoulder": [
+          3,
+          4,
+          5,
+          9,
+          10
+        ],
+        "winter": [
+          11,
+          12,
+          1,
+          2
+        ]
+      }
     },
     {
       "id": "education_a_low",
@@ -61,8 +127,31 @@
       "status": "sourced",
       "source": "한전 전기요금표(종합) 교육용전력(갑) 저압(2024-07-01 시행)",
       "basicKrwPerKw": 5230,
-      "seasonRatesKrwPerKwh": { "summer": 123.6, "shoulder": 86.4, "winter": 110.8 },
-      "seasonMonths": { "summer": [6, 7, 8], "shoulder": [3, 4, 5, 9, 10], "winter": [11, 12, 1, 2] }
+      "seasonRatesKrwPerKwh": {
+        "summer": 123.6,
+        "shoulder": 86.4,
+        "winter": 110.8
+      },
+      "seasonMonths": {
+        "summer": [
+          6,
+          7,
+          8
+        ],
+        "shoulder": [
+          3,
+          4,
+          5,
+          9,
+          10
+        ],
+        "winter": [
+          11,
+          12,
+          1,
+          2
+        ]
+      }
     }
   ]
 }

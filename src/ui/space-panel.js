@@ -21,6 +21,7 @@ function badge(/** @type {"sourced" | "reference" | "assumed" | "user"} */ statu
  * @typedef {Object} SpaceArgs
  * @property {number | null} lcoeKrwPerKwh   지상 설계의 LCOE(계산값). 계산할 수 없으면 null
  * @property {number} priceKrwPerKwh          현재 입력 전기요금 단가(비교용)
+ * @property {boolean} [billing]               월별 요금표(누진·계절)로 계산 중이면 true(이때 단가 칸은 쓰이지 않음)
  * @property {number | null} groundPoaKwhM2  지상 경사면 연 입사(PVGIS H(i)_y). 없으면 null
  * @property {number} tiltDeg
  * @property {number} degradationRate
@@ -144,7 +145,7 @@ export function createSpacePanel(container) {
     row("하루 평균", a.groundPoaKwhM2 === null ? "-" : `${num(a.groundPoaKwhM2 / 365, 2)} kWh/m²`, okInputs ? `${num(spaceInc / 365, 2)} kWh/m²` : "-");
     row("지상 대비", "1배", okInputs && a.groundPoaKwhM2 ? `${num(spaceInc / a.groundPoaKwhM2, 2)}배` : "-");
     row("사용 지점까지의 손실", "없음(현장 소비)", "× 송전 효율 η (아래 곡선의 가로축)");
-    row("비용", a.lcoeKrwPerKwh === null ? "계산할 수 없음" : `설계 LCOE ${num(a.lcoeKrwPerKwh, 1)}원/kWh (입력 전기요금 ${num(a.priceKrwPerKwh)}원/kWh)`, "예측하지 않음 (목표치만 계산)");
+    row("비용", a.lcoeKrwPerKwh === null ? "계산할 수 없음" : `설계 LCOE ${num(a.lcoeKrwPerKwh, 1)}원/kWh (${a.billing ? "전기요금은 월별 요금표로 계산 중" : `입력 전기요금 ${num(a.priceKrwPerKwh)}원/kWh`})`, "예측하지 않음 (목표치만 계산)");
     tableWrap.replaceChildren(table);
     message.textContent = a.groundPoaKwhM2 === null ? "지상 경사면 입사 자료를 찾지 못했습니다(경사각 확인)." : "입사 에너지는 같은 면적(1 m²)이 받는 빛의 양이며 패널 효율을 곱하기 전의 값입니다. 우주 쪽은 일조율 1이면 약 6.5배입니다(지상은 대기·구름·밤, 우주는 식만 있음).";
 

@@ -161,7 +161,9 @@ try {
 
   function recompute() {
     // 경사각에 맞는 월별 발전 비율·연 발전량 보정(PVGIS 표)을 적용한 엔진 입력과 입력 검사(민감도 분석과 같은 변환)
-    const { input, dayShareLow, dayShareHigh, errors } = buildEngineInput(state.values, state.usage, tiltData.table, fallbackRatios);
+    // 월별 요금표(누진·계절) 방식이면 12개월 요금표를 엔진에 넘긴다. 아니면 단일 단가
+    const billing = tariffSel?.getBilling() ?? null;
+    const { input, dayShareLow, dayShareHigh, errors } = buildEngineInput(state.values, state.usage, tiltData.table, fallbackRatios, billing);
     // 같은 오류가 두 번 나오지 않게(낮시간 비중은 두 검사 모두 보지만 한 번만 보여준다)
     const unique = [...new Set(friendlyErrors(errors))];
     errorBox.replaceChildren(...unique.map((msg) => el("li", {}, msg)));
@@ -203,6 +205,7 @@ try {
         space.update({
           lcoeKrwPerKwh: lcoeKrwPerKwh(withoutShare),
           priceKrwPerKwh: input.electricityPriceKrwPerKwh,
+          billing: billing !== null,
           groundPoaKwhM2: poaAtTilt(tiltData.table, /** @type {number} */ (state.values.tilt_deg)),
           tiltDeg: /** @type {number} */ (state.values.tilt_deg),
           degradationRate: input.degradationRate,
@@ -210,7 +213,7 @@ try {
           years: input.analysisYears,
         }),
       );
-      timed("민감도", () => sens.update({ values: state.values, usage: state.usage, toInput: (v, u) => buildEngineInput(v, u, tiltData.table, fallbackRatios) }));
+      timed("민감도", () => sens.update({ values: billing ? { ...state.values, tariff_scale: 1 } : state.values, usage: state.usage, toInput: (v, u) => buildEngineInput(v, u, tiltData.table, fallbackRatios, billing) }));
     });
     timed("주소 갱신", () => syncUrl());
   }
@@ -226,6 +229,7 @@ try {
     recompute();
   });
   tariffSel = renderTariffSelector(document.getElementById("tariff-panel"), tariffData, controller);
+  tariffSel.onChange(() => recompute()); // 계산 방식(누진·계절 요금표 / 한 단가)이나 기본요금 포함을 바꾸면 다시 계산
   const tabs = initTabs(document.getElementById("sidebar"));
   quick = createQuickControls(document.getElementById("quick-panel"), controller, (name) => tabs.show(name));
   quick.sync(state.values);

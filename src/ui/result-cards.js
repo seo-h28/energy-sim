@@ -4,6 +4,7 @@ import { cumulativeFlows } from "../core/finance.js";
 import { annualGeneration } from "../core/ground.js";
 import { flowTotals } from "../core/flow.js";
 import { summarizeMonthly } from "../core/seasonal.js";
+import { billKrw } from "../core/billing.js";
 import { LOW_GENERATION_FACTOR, SOURCE_GAP, lowGenerationInput } from "../core/uncertainty.js";
 import { el, fmt } from "./dom.js";
 
@@ -124,8 +125,17 @@ function buildCards(input, range) {
       `② ${m + 1}월 발전량(발전이 가장 많은 달) = 연 발전량 × 그 달 비율 ${fmt(input.monthlyRatios[m] * 100, 2)}% = ${fmt(y1.gen[m], 1)} kWh`,
       `③ ${m + 1}월 자가소비 = min(발전량, 사용량 × 낮시간 비중) = min(${fmt(y1.gen[m], 1)}, ${fmt(input.monthlyUsageKwh[m])} × ${pct(shares.base)}) = ${fmt(y1.self[m], 1)} kWh, 잉여 ${fmt(y1.export[m], 1)} kWh`,
       `④ 12개월 합: 자가소비 ${fmt(tot.selfKwh, 1)} kWh, 잉여 ${fmt(tot.exportKwh, 1)} kWh`,
-      `⑤ 1년차 연 절감 = 자가소비 × 요금 + 잉여 × 판매단가 − 연 유지비 = ${fmt(tot.selfKwh, 1)} × ${fmt(input.electricityPriceKrwPerKwh, 2)} + ${fmt(tot.exportKwh, 1)} × ${fmt(input.feedInPriceKrwPerKwh, 2)} − ${fmt(input.omCostKrwPerYear)} = ${won(s.firstYearSavingKrw)}`,
-      `⑥ 효율저하·요금 상승이 있으면 해마다 달라집니다. ${n}년 합계 ${won(s.totalSavingKrw)} ÷ ${n}년 = ${won(s.averageSavingKrw)}/년`,
+      ...(input.monthlyBilling
+        ? [
+            "⑤ 요금표(누진·계절)로 계산: 월 절감 = 요금(사용량) − 요금(사용량 − 자가소비)  (자가소비만큼 한전에서 덜 산다고 봄)",
+            `   예) ${m + 1}월: 요금(${fmt(input.monthlyUsageKwh[m])} kWh) ${won(billKrw(input.monthlyBilling[m], input.monthlyUsageKwh[m]) * (input.billScale ?? 1))} − 요금(${fmt(input.monthlyUsageKwh[m] - y1.self[m], 1)} kWh) ${won(billKrw(input.monthlyBilling[m], input.monthlyUsageKwh[m] - y1.self[m]) * (input.billScale ?? 1))} = ${won((billKrw(input.monthlyBilling[m], input.monthlyUsageKwh[m]) - billKrw(input.monthlyBilling[m], input.monthlyUsageKwh[m] - y1.self[m])) * (input.billScale ?? 1))}`,
+            `⑥ 1년차 연 절감 = Σ월 요금 절감 + 잉여 × 판매단가 − 연 유지비 = ${won(y1.saving.reduce((a, b) => a + b, 0) - tot.exportKwh * input.feedInPriceKrwPerKwh)} + ${fmt(tot.exportKwh, 1)} × ${fmt(input.feedInPriceKrwPerKwh, 2)} − ${fmt(input.omCostKrwPerYear)} = ${won(s.firstYearSavingKrw)}`,
+            `⑦ 효율저하·요금 상승이 있으면 해마다 달라집니다(요금표 전체에 요금 상승률을 곱함). ${n}년 합계 ${won(s.totalSavingKrw)} ÷ ${n}년 = ${won(s.averageSavingKrw)}/년`,
+          ]
+        : [
+            `⑤ 1년차 연 절감 = 자가소비 × 요금 + 잉여 × 판매단가 − 연 유지비 = ${fmt(tot.selfKwh, 1)} × ${fmt(input.electricityPriceKrwPerKwh, 2)} + ${fmt(tot.exportKwh, 1)} × ${fmt(input.feedInPriceKrwPerKwh, 2)} − ${fmt(input.omCostKrwPerYear)} = ${won(s.firstYearSavingKrw)}`,
+            `⑥ 효율저하·요금 상승이 있으면 해마다 달라집니다. ${n}년 합계 ${won(s.totalSavingKrw)} ÷ ${n}년 = ${won(s.averageSavingKrw)}/년`,
+          ]),
     ]),
   ];
 }

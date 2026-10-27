@@ -78,7 +78,14 @@ export function buildVariants(base, rel = DEFAULT_RELATIVE_RANGE) {
   const dayHigh = b("day_share_high");
   /** @type {VariantPair[]} */
   const list = [
-    scaled("electricity_price_krw_per_kwh", "전기요금 단가", rel),
+    // 월별 요금표(누진·계절)로 계산 중이면 단가 칸이 쓰이지 않으므로 요금표 전체의 배수(tariff_scale)를 바꾼다
+    typeof base.tariff_scale === "number"
+      ? /** @type {VariantPair} */ ({
+          id: "tariff_scale", label: "전기요금 (요금표 전체)",
+          low: { set: { tariff_scale: b("tariff_scale") * (1 - rel) }, usageScale: 1, text: `요금표 × ${num(b("tariff_scale") * (1 - rel))}` },
+          high: { set: { tariff_scale: b("tariff_scale") * (1 + rel) }, usageScale: 1, text: `요금표 × ${num(b("tariff_scale") * (1 + rel))}` },
+        })
+      : scaled("electricity_price_krw_per_kwh", "전기요금 단가", rel),
     scaled("install_cost_krw_per_kwp", "kWp당 설치비", rel),
     scaled("yield_kwh_per_kwp", "연 발전량 (일사 자료 차이)", GENERATION_RANGE),
     {

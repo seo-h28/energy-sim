@@ -9,11 +9,16 @@ import { validateMonthlyInput, validateDayShareRange } from "./seasonal.js";
  * @param {number[]} usage  월별 사용량 [kWh]
  * @param {import("./tilt.js").TiltTable} tiltTable
  * @param {number[]} fallbackRatios  경사각이 범위 밖이어서 표를 못 쓸 때 대신 두는 월 비율(이때 경사각 오류는 검사에서 따로 알려 줌)
+ * @param {import("./billing.js").MonthBilling[] | null} [billing]  12개월 요금표(누진·계절 요금). 없으면 단일 단가. 요금 전체의 배수는 values.tariff_scale(기본 1)
  * @returns {{ input: any, dayShareLow: number, dayShareHigh: number, errors: string[] }}
  */
-export function buildEngineInput(values, usage, tiltTable, fallbackRatios) {
+export function buildEngineInput(values, usage, tiltTable, fallbackRatios, billing = null) {
   const tilt = tiltProfile(tiltTable, /** @type {number} */ (values.tilt_deg));
   const { input, dayShareLow, dayShareHigh } = toEngineInput(values, usage, tilt ? tilt.ratios : fallbackRatios, tilt ? tilt.annualFactor : 1);
+  if (billing) {
+    input.monthlyBilling = billing;
+    input.billScale = typeof values.tariff_scale === "number" ? values.tariff_scale : 1;
+  }
   const errors = [...validateMonthlyInput(input), ...validateDayShareRange(dayShareLow, dayShareHigh)];
   return { input, dayShareLow, dayShareHigh, errors };
 }
