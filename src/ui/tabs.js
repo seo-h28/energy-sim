@@ -37,6 +37,8 @@ export function initTabs(nav) {
       b.setAttribute("aria-selected", String(on));
       b.tabIndex = on ? 0 : -1;
       if (on && focus) b.focus();
+      // 좁은 화면의 가로 막대에서 선택한 구역이 잘려 보이지 않게 가운데로 밀어 준다
+      if (on && typeof b.scrollIntoView === "function") b.scrollIntoView({ inline: "center", block: "nearest" });
       const panel = document.getElementById(`tab-${b.dataset.tab}`);
       if (panel) panel.hidden = !on;
     }

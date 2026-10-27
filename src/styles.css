@@ -52,7 +52,8 @@ code { font-size: 13px; color: var(--muted); }
 #errors:empty { display: none; }
 
 main { display: block; }
-.tab-panel { display: grid; gap: 20px; }
+.tab-panel { display: grid; grid-template-columns: minmax(0, 1fr); gap: 20px; } /* 표의 최소 너비 때문에 화면이 옆으로 늘어나지 않게(좁은 화면에서는 표만 가로 스크롤) */
+.tab-panel > section { min-width: 0; }
 
 /* 카드 모양: 구역마다 같은 바탕·테두리·둥근 모서리 */
 #quick-panel, #chart-panel, #diagram-panel, #balance-panel, #tariff-panel, #input-panel, #usage-panel, #monthly-panel, #curve-panel, #design-panel, #sensitivity-panel, #space-panel, #assumptions-panel {
@@ -206,6 +207,10 @@ table.assumptions details p { margin-top: 6px; color: var(--muted); font-size: 1
   .overview-row, .inputs-grid, .range-grid { grid-template-columns: minmax(0, 1fr); }
 }
 @media (max-width: 900px) {
+  /* 표가 화면보다 넓으면 표만 좌우로 민다: 첫 열(항목 이름)은 고정하고, 밀 수 있다는 안내를 위에 보인다 */
+  .table-wrap::before { content: "← 표는 좌우로 밀어서 볼 수 있습니다 →"; display: block; margin: 0 0 4px; font-size: 13px; color: var(--muted); }
+  .season-table th:first-child, .design-table th:first-child { position: sticky; left: 0; z-index: 1; background: var(--surface); box-shadow: 1px 0 0 var(--border); }
+  .design-table th[scope="col"]:first-child { z-index: 2; }
   .app { grid-template-columns: minmax(0, 1fr); }
   #sidebar { position: sticky; top: 0; z-index: 20; height: auto; flex-direction: row; align-items: center; gap: 10px; padding: 8px 12px; border-right: 0; border-bottom: 1px solid var(--border); overflow-x: auto; }
   .brand { display: none; }
@@ -213,6 +218,9 @@ table.assumptions details p { margin-top: 6px; color: var(--muted); font-size: 1
   .nav-btn { width: auto; min-width: 72px; padding: 8px 10px; }
   .main-col { padding: 16px 14px 32px; }
   .topbar h1 { font-size: 22px; }
+}
+@media (max-width: 380px) {
+  .range-table th, .range-table td { padding: 6px 4px; font-size: 14px; }
 }
 @media (max-width: 560px) {
   .cards { grid-template-columns: minmax(0, 1fr); }
