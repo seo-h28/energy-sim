@@ -390,3 +390,19 @@ table.assumptions details p { margin-top: 6px; color: var(--muted); font-size: 1
   .vis-mcol-icon svg { width: 14px; height: 14px; }
   .vis-mbars { height: 120px; }
 }
+
+/* ── 에너지 결손 ── */
+#gap-panel { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 22px; }
+.vis-cover { display: flex; height: 38px; border-radius: 999px; overflow: hidden; border: 1px solid var(--border); margin: 6px 0 12px; }
+.vis-cover-got, .vis-cover-gap { display: flex; align-items: center; justify-content: center; padding: 0 10px; font-size: 14px; font-weight: 700; white-space: nowrap; overflow: hidden; }
+.vis-cover-got { background: #14532d; color: #bbf7d0; }
+.vis-cover-gap { background: #7f1d1d; color: #fecaca; }
+.vis-warn { color: var(--warn); font-weight: 700; }
+.vis-swatch-lack { background: #f87171; }
+.vis-gapbars { display: flex; align-items: flex-end; justify-content: center; width: 100%; height: 150px; border-bottom: 2px solid var(--border); }
+.vis-gapstack { display: flex; flex-direction: column; justify-content: flex-end; width: 60%; max-width: 26px; height: 100%; }
+.vis-gap-got { background: #34d399; }
+.vis-gap-lack { background: #f87171; }
+.vis-gap-surplus { background: transparent; border: 2px dashed var(--warn); border-bottom: 0; }
+.vis-gapmonths .vis-mcol-cov { color: #fca5a5; }
+@media (max-width: 560px) { .vis-gapbars { height: 120px; } }

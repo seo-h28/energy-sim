@@ -152,3 +152,31 @@ export function seasonStory(d) {
   return out;
 }
 
+// ── 에너지 결손 그림 ──
+
+/**
+ * 에너지 결손을 쉬운 문장으로. 숫자는 gap.js의 결과를 그대로 옮긴다.
+ * @param {import("./gap.js").GapResult} g
+ * @param {{ roofAreaM2: number, areaPerKwpM2: number }} a
+ * @returns {string[]}
+ */
+export function gapStory(g, a) {
+  const k = (/** @type {number} */ n) => `${Math.round(n).toLocaleString("ko-KR")} kWh`;
+  const n2 = (/** @type {number} */ n) => Number(n.toFixed(2)).toLocaleString("ko-KR");
+  const n1 = (/** @type {number} */ n) => Number(n.toFixed(1)).toLocaleString("ko-KR");
+  const out = [`설치 가능 면적 ${n1(a.roofAreaM2)} m²에는 최대 ${n2(g.maxCapacityKwp)} kWp를 놓을 수 있습니다(1 kWp당 ${n1(a.areaPerKwpM2)} m²로 계산).`];
+  if (g.gapYearKwh > 1e-9) {
+    out.push(`그만큼 설치하면 1년에 약 ${k(g.genYearKwh)}를 만들어 연 사용량 ${k(g.usageYearKwh)}의 ${Math.round(g.coverage * 100)}%를 채우고, 연 ${k(g.gapYearKwh)}(${Math.round((1 - g.coverage) * 100)}%)가 모자랍니다. 이것이 에너지 결손입니다.`);
+  } else {
+    out.push(`그만큼 설치하면 1년에 약 ${k(g.genYearKwh)}를 만들어 연 사용량 ${k(g.usageYearKwh)}를 모두 채울 수 있습니다(결손 없음). 연 합계로 ${k(g.genYearKwh - g.usageYearKwh)}가 남습니다.`);
+  }
+  const extraArea = g.fullCoverAreaM2 - a.roofAreaM2;
+  out.push(
+    Number.isFinite(g.fullCoverCapacityKwp)
+      ? `연 사용량을 연 합계로 100% 채우려면 약 ${n2(g.fullCoverCapacityKwp)} kWp(면적 ${n1(g.fullCoverAreaM2)} m²)가 필요합니다. ${extraArea > 1e-9 ? `설치 가능 면적보다 ${n1(extraArea)} m² 더 필요합니다.` : "설치 가능 면적 안에서 가능합니다."}`
+      : "발전량을 계산할 수 없어 100% 채우는 용량을 구하지 못했습니다.",
+  );
+  if (!g.currentFits) out.push(`주의: 지금 입력한 설치 용량 ${n2(g.currentCapacityKwp)} kWp는 ${n1(g.currentAreaM2)} m²가 필요해 설치 가능 면적 ${n1(a.roofAreaM2)} m²를 넘습니다.`);
+  return out;
+}
+

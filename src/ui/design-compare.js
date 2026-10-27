@@ -162,6 +162,7 @@ export function createDesignPanel(container, deps) {
     row("요금제", (r) => r.tariffLabel);
     row("설치 용량", (r) => `${fmt(r.capacityKwp, 2)} kWp`);
     row("경사각", (r) => `${fmt(r.tiltDeg)}°`);
+    row("필요 면적 / 설치 가능", (r) => (r.requiredAreaM2 === undefined ? "-" : `${fmt(r.requiredAreaM2, 1)} / ${fmt(r.roofAreaM2, 1)} m²${r.fitsArea ? "" : " (넘음)"}`));
     row("순 투자비", (r) => won(r.netInvestmentKrw));
     row("1년차 발전량", (r) => `${fmt(r.year1GenKwh)} kWh`);
     row("자가소비율", (r) => pct(r.selfConsumptionRate));

@@ -11,6 +11,20 @@
       "status": "assumed",
       "source": "임의 가정(테스트 케이스 1 값). 사용자 입력으로 바뀔 값"
     },
+    "roof_area_m2": {
+      "label": "설치 가능 면적",
+      "value": 20,
+      "unit": "m²",
+      "status": "assumed",
+      "source": "임의 가정(작은 주택 지붕 한쪽 면 정도의 예시). 실제 설치 가능 면적은 현장 실측으로 바꿀 것. 에너지 결손(옥상 면적 한계)과 용량 곡선의 면적 한계선 계산에만 쓰이고 재무 결과에는 영향이 없다"
+    },
+    "area_per_kwp_m2": {
+      "label": "kWp당 필요 면적",
+      "value": 6,
+      "unit": "m²/kWp",
+      "status": "assumed",
+      "source": "임의 가정. kWp는 1,000 W/m² 조건의 출력이라 패널 면적만으로는 1 ÷ 패널 효율 m²가 필요하다(효율 20%면 5 m²). 패널 사이 간격·경사 설치 때의 줄 간 그늘 여유로 20% 더해 6으로 둠. 패널 데이터시트(spec 5.1c)와 설치 방식을 확인한 뒤 바꿀 것"
+    },
     "yield_kwh_per_kwp": {
       "label": "kWp당 연간 발전량 (35° 남향, 기본 손실 포함)",
       "value": 1484.15,
@@ -115,13 +129,6 @@
       "unit": "년",
       "status": "assumed",
       "source": "임의 가정(테스트 케이스 1 값)"
-    },
-    "area_per_kwp_m2": {
-      "label": "kWp당 필요 면적",
-      "value": null,
-      "unit": "m²/kWp",
-      "status": "assumed",
-      "source": "값 미정. 패널 데이터시트 확인 후 입력(spec 5.1 제약)"
     }
   }
 }

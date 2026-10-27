@@ -116,11 +116,13 @@ export function bestByNpv(points, which = "base") {
  * 탐색 범위 최대 용량 [kWp] 자동 선택: 포화 용량의 1.5배, 현재 입력의 1.2배, 최소 5 중 큰 값을 올림(10 이하는 정수, 그 위는 5 단위), 최대 50.
  * @param {number} saturationKwp  Infinity 가능
  * @param {number} currentKwp
+ * @param {number} [areaLimitKwp]  설치 가능 면적에서 나오는 최대 용량(없으면 NaN)
  * @returns {number}
  */
-export function autoMaxCapacity(saturationKwp, currentKwp) {
+export function autoMaxCapacity(saturationKwp, currentKwp, areaLimitKwp = NaN) {
   const sat = Number.isFinite(saturationKwp) ? saturationKwp * 1.5 : 0;
-  const raw = Math.max(5, sat, (Number.isFinite(currentKwp) ? currentKwp : 0) * 1.2);
+  const area = Number.isFinite(areaLimitKwp) ? areaLimitKwp * 1.2 : 0; // 설치 가능 면적의 한계선이 그래프 안에 보이도록
+  const raw = Math.max(5, sat, area, (Number.isFinite(currentKwp) ? currentKwp : 0) * 1.2);
   const rounded = raw <= 10 ? Math.ceil(raw) : Math.ceil(raw / 5) * 5;
   return Math.min(50, rounded);
 }

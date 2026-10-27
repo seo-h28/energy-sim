@@ -1,6 +1,6 @@
 // 쉬운 그림들(SVG·HTML, 외부 이미지 없음): 결과 한 줄 요약과 투자 회수 타임라인, 처음 보는 사람을 위한 용어 그림,
 // 우주 비교의 실제 비율 궤도 그림·하루 햇빛 비교·에너지 흐름. 숫자는 계산기의 결과값을 그대로 옮기며(core/visual-data.js), 그림의 색·모양은 보조다.
-import { dayCompare, energyFlow, monthBars, orbitGeometry, paybackTimeline, plainSummary, seasonBars, seasonStory } from "../core/visual-data.js";
+import { dayCompare, energyFlow, gapStory, monthBars, orbitGeometry, paybackTimeline, plainSummary, seasonBars, seasonStory } from "../core/visual-data.js";
 import { el, fmt, svgEl } from "./dom.js";
 
 /** 번호 표시(원 안의 숫자) */
@@ -342,6 +342,74 @@ export function renderSeasons(container, d) {
     el("h3", { class: "sub-heading" }, "달마다 보면"),
     el("p", { class: "vis-note" }, "막대 아래 숫자는 그 달 전기 사용량 중 태양광이 채우는 몫입니다. 발전 막대는 초록(내가 쓰는 몫)과 금색(한전으로 보내는 남는 전기)으로 이루어집니다."),
     strip,
+  );
+  container.hidden = false;
+}
+
+// ── 에너지 결손: 면적을 다 써도 모자라는 전기 ──
+
+/**
+ * @param {HTMLElement} container
+ * @param {import("../core/gap.js").GapResult} g
+ * @param {{ roofAreaM2: number, areaPerKwpM2: number }} a
+ */
+export function renderGap(container, g, a) {
+  const story = el("ul", { class: "vis-story" });
+  for (const line of gapStory(g, a)) {
+    const li = el("li", {}, line);
+    if (line.startsWith("주의:")) li.className = "vis-warn";
+    story.append(li);
+  }
+  // 연 사용량 중 채우는 몫
+  const cov = el("div", { class: "vis-cover", role: "img", "aria-label": `연 사용량의 ${Math.round(g.coverage * 100)}%를 채우고 ${Math.round((1 - g.coverage) * 100)}%가 결손` });
+  const got = el("div", { class: "vis-cover-got" }, `채우는 몫 ${Math.round(g.coverage * 100)}%`);
+  got.style.flexGrow = String(Math.max(g.coverage, 0.0001));
+  cov.append(got);
+  if (g.coverage < 1) {
+    const lack = el("div", { class: "vis-cover-gap" }, `결손 ${Math.round((1 - g.coverage) * 100)}%`);
+    lack.style.flexGrow = String(1 - g.coverage);
+    cov.append(lack);
+  }
+  // 달별 막대: 사용량 기둥을 채워진 부분(초록)과 모자란 부분(빨강)으로 나누고, 사용량보다 많이 만든 부분은 위에 금색
+  const use = g.genMonthly.map((gen, i) => gen - g.surplusMonthly[i] + g.gapMonthly[i]); // 사용량 = 발전 − 초과 + 결손
+  const max = Math.max(...use, ...g.genMonthly, 1e-9);
+  const strip = el("div", { class: "vis-months vis-gapmonths", role: "img", "aria-label": "달별 에너지 결손 막대" });
+  for (let i = 0; i < 12; i++) {
+    const covered = Math.min(g.genMonthly[i], use[i]);
+    const col = el("div", { class: "vis-mcol" });
+    const area = el("div", { class: "vis-gapbars", title: `${i + 1}월: 사용 ${fmt(use[i])} kWh, 최대 설치 발전 ${fmt(g.genMonthly[i])} kWh, 결손 ${fmt(g.gapMonthly[i])} kWh` });
+    const stack = el("div", { class: "vis-gapstack" });
+    if (g.surplusMonthly[i] > 0) {
+      const sur = el("div", { class: "vis-gap-surplus" });
+      sur.style.height = `${(g.surplusMonthly[i] / max) * 100}%`;
+      stack.append(sur);
+    }
+    if (g.gapMonthly[i] > 0) {
+      const lack = el("div", { class: "vis-gap-lack" });
+      lack.style.height = `${(g.gapMonthly[i] / max) * 100}%`;
+      stack.append(lack);
+    }
+    const got2 = el("div", { class: "vis-gap-got" });
+    got2.style.height = `${Math.max(1, (covered / max) * 100)}%`;
+    stack.append(got2);
+    area.append(stack);
+    col.append(area, el("div", { class: "vis-mcol-month" }, `${i + 1}월`), el("div", { class: "vis-mcol-cov" }, g.gapMonthly[i] > 0 ? `-${fmt(g.gapMonthly[i])}` : "0"));
+    strip.append(col);
+  }
+  const legend = el("p", { class: "vis-legend-row" });
+  for (const [cls, text] of [["vis-swatch-self", "발전으로 채우는 부분"], ["vis-swatch-lack", "모자라는 부분(결손)"], ["vis-swatch-gen", "사용량보다 많이 만든 부분"]]) {
+    const item = el("span", { class: "vis-legend-item" });
+    item.append(el("span", { class: `vis-swatch ${cls}` }), document.createTextNode(text));
+    legend.append(item);
+  }
+  container.replaceChildren(
+    el("h2", {}, "에너지 결손: 설치 가능 면적을 다 써도 모자라는 전기"),
+    story,
+    cov,
+    el("h3", { class: "sub-heading" }, "달마다 모자라는 전기(kWh)"),
+    legend,
+    strip,
+    el("p", { class: "vis-note" }, "면적을 모두 써서 설치한 설계(최대 용량)의 1년차 발전량과 월별 사용량을 비교한 계산값입니다. 연·월 합계 기준이라 낮에 발전하고 저녁에 쓰는 시간대 차이는 반영하지 않으며, 설치 가능 면적과 kWp당 필요 면적은 임의 가정입니다. 우주 비교와는 연결하지 않습니다."),
   );
   container.hidden = false;
 }

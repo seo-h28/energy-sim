@@ -53,6 +53,11 @@ export function validateMonthlyInput(input) {
   }
   const billing = /** @type {any} */ (input).monthlyBilling;
   if (billing !== undefined) errors.push(...validateMonthlyBilling(billing));
+  // 설치 가능 면적·kWp당 필요 면적은 선택 항목(에너지 결손 계산용). 있으면 0보다 커야 한다
+  const roof = /** @type {any} */ (input).roofAreaM2;
+  if (roof !== undefined && !(roof > 0 && Number.isFinite(roof))) errors.push(`roofAreaM2: 설치 가능 면적은 0보다 커야 함 (받은 값 ${roof})`);
+  const perKwp = /** @type {any} */ (input).areaPerKwpM2;
+  if (perKwp !== undefined && !(perKwp > 0 && Number.isFinite(perKwp))) errors.push(`areaPerKwpM2: kWp당 필요 면적은 0보다 커야 함 (받은 값 ${perKwp})`);
   if (!(input.dayShare >= 0 && input.dayShare <= 1)) errors.push(`dayShare: 낮시간 사용 비중은 0~1 (받은 값 ${input.dayShare})`);
   return errors;
 }

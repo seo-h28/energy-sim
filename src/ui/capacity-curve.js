@@ -16,6 +16,7 @@ const COLORS = {
   text: T.text,
   current: T.dark,
   saturation: T.brown,
+  areaLimit: T.secondary, // 설치 가능 면적 한계: 보조 강조색
   best: T.dark,
   panel: T.panel,
 };
@@ -27,7 +28,7 @@ const years = (/** @type {number | null} */ v) => (v === null ? "회수 불가" 
 
 /**
  * @param {HTMLElement} container
- * @returns {{ update(args: { input: Omit<import("../core/seasonal.js").MonthlyInput, "dayShare">, dayShareLow: number, dayShareHigh: number, currentCapacity: number }): void, hide(): void, getMax(): number | null, setMax(v: number | null): void }}
+ * @returns {{ update(args: { input: Omit<import("../core/seasonal.js").MonthlyInput, "dayShare">, dayShareLow: number, dayShareHigh: number, currentCapacity: number, areaLimitKwp?: number }): void, hide(): void, getMax(): number | null, setMax(v: number | null): void }}
  */
 export function createCapacityCurve(container) {
   const Chart = /** @type {any} */ (window).Chart;
@@ -135,7 +136,7 @@ export function createCapacityCurve(container) {
 
   function render() {
     if (!last) return;
-    const { input, dayShareLow, dayShareHigh, currentCapacity } = last;
+    const { input, dayShareLow, dayShareHigh, currentCapacity, areaLimitKwp = NaN } = last;
     const mid = (dayShareLow + dayShareHigh) / 2;
     const satBase = saturationCapacity({ ...input, dayShare: mid });
     const satLow = saturationCapacity({ ...input, dayShare: dayShareLow });
@@ -143,7 +144,7 @@ export function createCapacityCurve(container) {
 
     const userMax = maxInput.valueAsNumber;
     const manual = Number.isFinite(userMax) && userMax > 0;
-    const maxKwp = manual ? Math.min(MAX_USER_KWP, userMax) : autoMaxCapacity(satBase, currentCapacity);
+    const maxKwp = manual ? Math.min(MAX_USER_KWP, userMax) : autoMaxCapacity(satBase, currentCapacity, areaLimitKwp);
     const caps = capacityGrid(maxKwp);
 
     const t0 = performance.now();
@@ -164,6 +165,7 @@ export function createCapacityCurve(container) {
     markers = [
       { x: currentCapacity, label: `현재 입력 ${fmt(currentCapacity, 2)} kWp`, color: COLORS.current, row: 0 },
       { x: satBase, label: `포화 용량 ${fmt(satBase, 2)} kWp`, color: COLORS.saturation, row: 1 },
+      ...(Number.isFinite(areaLimitKwp) ? [{ x: areaLimitKwp, label: `설치 가능 면적 한계 ${fmt(areaLimitKwp, 2)} kWp`, color: COLORS.areaLimit, row: 2 }] : []),
     ];
     chart.update();
 

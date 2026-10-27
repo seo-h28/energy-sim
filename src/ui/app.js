@@ -23,7 +23,8 @@ import { createCapacityCurve } from "./capacity-curve.js";
 import { createSensitivityPanel } from "./sensitivity-chart.js";
 import { createSpacePanel } from "./space-panel.js";
 import { createDesignPanel } from "./design-compare.js";
-import { renderStory, renderGlossary, renderSeasons } from "./visuals.js";
+import { renderStory, renderGlossary, renderSeasons, renderGap } from "./visuals.js";
+import { energyGap } from "../core/gap.js";
 import { lcoeKrwPerKwh } from "../core/seasonal.js";
 import { createSystemDiagram } from "./diagram.js";
 import { SOURCE_GAP, ASOS_OVER_NASA } from "../core/uncertainty.js";
@@ -48,6 +49,7 @@ const rangePanel = document.getElementById("range-panel");
 const balancePanel = document.getElementById("balance-panel");
 const storyPanel = document.getElementById("story-panel");
 const seasonPanel = document.getElementById("season-panel");
+const gapPanel = document.getElementById("gap-panel");
 const errorBox = document.getElementById("errors");
 const panel = document.getElementById("assumptions-panel");
 
@@ -182,6 +184,7 @@ try {
       balancePanel.hidden = true;
       storyPanel.hidden = true;
       seasonPanel.hidden = true;
+      gapPanel.hidden = true;
       cancelHeavy();
       cashChart.hide();
       monthlyChart.hide();
@@ -197,6 +200,8 @@ try {
     const range = timed("계산(범위)", () => summarizeRange(withoutShare, dayShareLow, dayShareHigh));
     const base = range.base;
     timed("쉬운 요약", () => renderStory(storyPanel, { netInvestmentKrw: base.netInvestmentKrw, paybackYears: base.paybackYears, years: input.analysisYears, totalSavingKrw: base.totalSavingKrw, firstYearSavingKrw: base.firstYearSavingKrw }));
+    const gap = energyGap(withoutShare, input.roofAreaM2, input.areaPerKwpM2);
+    timed("에너지 결손", () => renderGap(gapPanel, gap, { roofAreaM2: input.roofAreaM2, areaPerKwpM2: input.areaPerKwpM2 }));
     timed("계절 그림", () => renderSeasons(seasonPanel, { year1: base.year1, usage: state.usage, seasons: seasonSummary(base.year1, state.usage) }));
     timed("결과 카드", () => renderResultCards(resultPanel, input, range, countAssumed(state.values, data, state.usageIsExample)));
     timed("범위 표", () => renderRangeBoxes(rangePanel, input, range));
@@ -212,7 +217,7 @@ try {
         }),
       );
       timed("월별 그래프", () => monthlyChart.update({ year1: base.year1, usage: state.usage, seasons: seasonSummary(base.year1, state.usage), dayShare: range.dayShares.base }));
-      timed("용량 곡선", () => curve.update({ input: withoutShare, dayShareLow, dayShareHigh, currentCapacity: input.capacityKwp }));
+      timed("용량 곡선", () => curve.update({ input: withoutShare, dayShareLow, dayShareHigh, currentCapacity: input.capacityKwp, areaLimitKwp: gap.maxCapacityKwp }));
       timed("우주 비교", () =>
         space.update({
           lcoeKrwPerKwh: lcoeKrwPerKwh(withoutShare),

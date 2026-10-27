@@ -1,9 +1,11 @@
 // @ts-check
 // 가정 레지스트리(snake_case 키)를 월별 엔진 입력(camelCase)으로 바꾼다.
 
-/** JSON 키 → 엔진 입력 키. 여기 없는 키(예: area_per_kwp_m2)는 아직 재무 계산에 쓰지 않는다. */
+/** JSON 키 → 엔진 입력 키. roofAreaM2·areaPerKwpM2·tiltDeg는 재무 식에는 쓰이지 않고(경사각은 월 비율·연 보정으로, 면적은 에너지 결손으로 따로 쓰임) 범위 검사만 한다. */
 export const PARAM_TO_INPUT = /** @type {const} */ ({
   capacity_kwp: "capacityKwp",
+  roof_area_m2: "roofAreaM2",
+  area_per_kwp_m2: "areaPerKwpM2",
   yield_kwh_per_kwp: "yieldKwhPerKwp",
   orientation_factor: "orientationFactor",
   tilt_deg: "tiltDeg",
@@ -21,6 +23,9 @@ export const PARAM_TO_INPUT = /** @type {const} */ ({
   analysis_years: "analysisYears",
 });
 
+/** 재무 계산에 꼭 필요하지 않은 선택 입력: 값이 아예 없으면(undefined) 엔진 입력에서 빼서 검사하지 않는다(칸을 비운 null은 오류로 알림) */
+const OPTIONAL_PARAMS = new Set(["roof_area_m2", "area_per_kwp_m2"]);
+
 /**
  * 입력칸의 값(+ 월별 사용량·월 비율)을 월별 엔진 입력으로 바꾼다.
  * 비어 있거나 null인 값은 NaN으로 두어, 검사가 "받은 값 NaN"으로 알려 주게 한다.
@@ -36,6 +41,7 @@ export function toEngineInput(values, monthlyUsageKwh, monthlyRatios, tiltAnnual
   const out = {};
   for (const [paramId, inputKey] of Object.entries(PARAM_TO_INPUT)) {
     const v = values[paramId];
+    if (v === undefined && OPTIONAL_PARAMS.has(paramId)) continue;
     out[inputKey] = typeof v === "number" ? v : NaN;
   }
   const { dayShareLow, dayShareHigh, ...rest } = out;

@@ -56,6 +56,9 @@ export function billingFromTariffState(tariffData, state) {
  * @property {number | null} [lcoeKrwPerKwh]
  * @property {number[]} [cumulative]  연도별 누적 현금흐름(0년차부터)
  * @property {string} [tariffLabel]
+ * @property {number} [requiredAreaM2]  이 설계 용량에 필요한 면적(설치 가능 면적 입력이 있을 때)
+ * @property {number} [roofAreaM2]      설치 가능 면적
+ * @property {boolean} [fitsArea]       필요 면적이 설치 가능 면적 안인가
  */
 
 /**
@@ -89,6 +92,9 @@ export function evaluateDesign(design, ctx) {
     lcoeKrwPerKwh: lcoeKrwPerKwh(withoutShare),
     cumulative: cumulativeFlows(b.flows),
     tariffLabel: tariff ? `${tariff.label}${billing ? " (월별 요금표)" : " (한 단가)"}` : "직접 입력(한 단가)",
+    ...(built.input.roofAreaM2 > 0 && built.input.areaPerKwpM2 > 0
+      ? { requiredAreaM2: built.input.capacityKwp * built.input.areaPerKwpM2, roofAreaM2: built.input.roofAreaM2, fitsArea: built.input.capacityKwp * built.input.areaPerKwpM2 <= built.input.roofAreaM2 * (1 + 1e-12) }
+      : {}),
   };
 }
 
