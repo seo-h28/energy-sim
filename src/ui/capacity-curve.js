@@ -51,7 +51,7 @@ export function createCapacityCurve(container) {
   const tableWrap = el("div", { class: "table-wrap" });
   container.replaceChildren(
     el("h2", {}, "용량 곡선: 얼마나 크게 설치할까"),
-    el("p", { class: "card-note" }, "용량을 바꿔 가며 계산한 결과입니다. 옥상 면적 제한은 반영하지 않았습니다(옥상 면적 정보가 없음)."),
+    el("p", { class: "card-note" }, "용량을 바꿔 가며 계산한 결과입니다. 설치 가능 면적의 한계(입력한 면적 ÷ kWp당 필요 면적)는 세로선으로 표시하며, 선 오른쪽은 면적이 모자라 설치할 수 없는 구간입니다(곡선 계산 자체에는 면적 제한을 걸지 않았습니다)."),
     controls,
     box,
     bullets,
