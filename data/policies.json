@@ -1,0 +1,89 @@
+{
+  "meta": {
+    "asOf": "2026-11-01",
+    "note": "검색으로 확인한 사업의 존재·주관기관·형태·공식 링크만 담았다. 지원 금액, 자격 기준, 접수 기간은 공고 원문(첨부파일 포함)을 이 조사에서 읽지 못해 값을 넣지 않았다(amount.status = unverified). 사업은 해마다 공고가 바뀌고 예산이 소진되면 마감되므로 신청 전에 반드시 공고 원문으로 확인한다.",
+    "status": "reference"
+  },
+  "programs": [
+    {
+      "id": "knrec_housing",
+      "name": "신재생에너지 보급(주택지원) 사업",
+      "agency": "한국에너지공단 신재생에너지센터",
+      "level": "national",
+      "form": "subsidy",
+      "regions": ["all"],
+      "buildingTypes": ["detached", "apartment"],
+      "installKinds": ["rooftop"],
+      "summary": "단독주택·공동주택에 신재생에너지(태양광 포함) 설비를 설치할 때 설치비 일부를 지원하는 사업으로 소개된다.",
+      "facts": [
+        "주택지원 사업은 선착순 접수로 소개되며 예산이 한정되어 일찍 마감되는 경우가 많다고 한다(블로그 요약, 공단 원문 미확인).",
+        "절차: 공단 검토 → 신청자 자부담 예치금 납부 → 업체 설치 → 시공 확인 후 보조금 지급으로 소개된다(블로그 요약, 공단 원문 미확인)."
+      ],
+      "amount": { "status": "unverified", "text": "kW당 보조금·자부담 비율은 공단 사업공고 원문에서 확인" },
+      "eligibility": { "status": "unverified", "text": "대상 주택·소득·용량 조건은 공고 원문에서 확인" },
+      "sources": [
+        { "label": "한국에너지공단 신재생에너지센터 사업공고 목록", "url": "https://www.knrec.or.kr/biz/pds/businoti/list.do" }
+      ]
+    },
+    {
+      "id": "knrec_veranda",
+      "name": "가정형(베란다) 태양광 지원사업",
+      "agency": "한국에너지공단 신재생에너지센터",
+      "level": "national",
+      "form": "subsidy",
+      "regions": ["all"],
+      "buildingTypes": ["apartment", "detached"],
+      "installKinds": ["balcony"],
+      "summary": "한국에너지공단 공고에 '가정형(베란다) 태양광 지원사업' 항목이 있으며, 신청 시 생산물배상책임보험 증권이 필요하다고 안내된다.",
+      "facts": [
+        "공단 공고에서 생산물배상책임보험 증권 제출이 언급된다(검색 결과의 공고 요약, 원문 본문은 읽지 못함)."
+      ],
+      "amount": { "status": "unverified", "text": "지원 금액은 공고 원문에서 확인" },
+      "eligibility": { "status": "unverified", "text": "대상·용량 기준은 공고 원문에서 확인" },
+      "sources": [
+        { "label": "한국에너지공단 신재생에너지센터 사업공고 목록", "url": "https://www.knrec.or.kr/biz/pds/businoti/list.do" }
+      ]
+    },
+    {
+      "id": "knrec_loan",
+      "name": "신재생에너지 금융지원사업(융자)",
+      "agency": "기후에너지환경부 · 한국에너지공단",
+      "level": "national",
+      "form": "loan",
+      "regions": ["all"],
+      "buildingTypes": ["detached", "apartment", "building", "factory"],
+      "installKinds": ["rooftop", "ground"],
+      "summary": "신재생에너지 설비 설치 자금을 낮은 금리로 빌려 주는 융자 사업. 2026년 공고가 있으며 공단 홈페이지에서 온라인으로 신청한다.",
+      "facts": [
+        "2026년 재생에너지 금융지원사업 공고와 변경 공고(2026-06-06 기준)가 공단 공고 게시판에 있다고 확인됨(검색 결과).",
+        "온라인 접수 시 공동인증서가 필요하다고 안내된다(공단 금융지원 페이지 요약).",
+        "2026년 예산 6,480억 원, 5년 거치 10년 분할상환, 분기별 변동금리는 블로그 요약이며 공단 원문으로 확인하지 못했다."
+      ],
+      "amount": { "status": "unverified", "text": "융자 한도·금리는 공고 원문 또는 공단 콜센터 1855-3020에서 확인" },
+      "eligibility": { "status": "unverified", "text": "대상 설비·신청자 조건은 공고 원문에서 확인" },
+      "sources": [
+        { "label": "한국에너지공단 금융지원 안내", "url": "https://www.knrec.or.kr/biz/introduce/new_fin/intro_fin.do?gubun=A" },
+        { "label": "한국에너지공단 사업공고 목록", "url": "https://www.knrec.or.kr/biz/pds/businoti/list.do" }
+      ]
+    },
+    {
+      "id": "busan_mini",
+      "name": "2026년 미니태양광 발전설비 보급사업(부산)",
+      "agency": "부산광역시 미래에너지산업과",
+      "level": "local",
+      "form": "subsidy",
+      "regions": ["busan"],
+      "buildingTypes": ["apartment", "detached"],
+      "installKinds": ["balcony"],
+      "summary": "부산시 공고 게시판에 「2026년 미니태양광 발전설비 보급사업 사업공고」(공고번호 2026-1867, 2026-06-04)가 올라 있다. 같은 사업의 참여기업 모집 공고(2026-1558, 5월 6일)와 선정 공고(2026-1852, 6월 2일)도 있다.",
+      "facts": [
+        "공고 제목에 '참여기업'이 들어간 공고가 함께 있어 가구 직접 지원인지 설치업체 선정 방식인지는 공고 본문에서 확인해야 한다."
+      ],
+      "amount": { "status": "unverified", "text": "가구별 지원 금액은 공고 원문에서 확인(블로그의 30~50만 원은 출처 불분명이라 쓰지 않음)" },
+      "eligibility": { "status": "unverified", "text": "신청 자격·접수 기간은 공고 원문에서 확인" },
+      "sources": [
+        { "label": "부산광역시 고시·공고 게시판", "url": "https://www.busan.go.kr/biz/community02?curPage=1" }
+      ]
+    }
+  ]
+}

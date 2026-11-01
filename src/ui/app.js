@@ -24,6 +24,9 @@ import { createSensitivityPanel } from "./sensitivity-chart.js";
 import { createSpacePanel } from "./space-panel.js";
 import { createDesignPanel } from "./design-compare.js";
 import { createYearReplayPanel } from "./year-replay-panel.js";
+import { createSurfaceChart } from "./surface-chart.js";
+import { createPolicyPanel } from "./policy-panel.js";
+import { loadPolicies } from "../core/policy.js";
 import { renderInputGuide } from "./input-guide.js";
 import { renderStory, renderGlossary, renderSeasons, renderGap } from "./visuals.js";
 import { energyGap } from "../core/gap.js";
@@ -91,13 +94,14 @@ function renderFooter() {
 
 try {
   renderFooter();
-  const [data, tariffData, usageExample, tiltData, insolation] = await Promise.all([loadAssumptions(), loadTariffs(), loadMonthlyUsage(), loadTiltTable(), loadAnnualInsolation()]);
+  const [data, tariffData, usageExample, tiltData, insolation, policies] = await Promise.all([loadAssumptions(), loadTariffs(), loadMonthlyUsage(), loadTiltTable(), loadAnnualInsolation(), loadPolicies()]);
   // 경사각이 범위 밖이어서 표를 못 쓸 때 대신 두는 월 비율(이때는 입력 오류 문구가 따로 나온다)
   const fallbackRatios = /** @type {number[]} */ (tiltProfile(tiltData.table, BASE_TILT_DEG)?.ratios);
 
   const cashChart = createCashflowChart(document.getElementById("chart-panel"));
   const monthlyChart = createMonthlyChart(document.getElementById("monthly-panel"));
   const curve = createCapacityCurve(document.getElementById("curve-panel"));
+  const surface = createSurfaceChart(/** @type {HTMLElement} */ (document.getElementById("surface-panel")));
   const sens = createSensitivityPanel(document.getElementById("sensitivity-panel"), () => recompute());
   const yearPanel = createYearReplayPanel(/** @type {HTMLElement} */ (document.getElementById("year-panel")), insolation.years);
   const space = createSpacePanel(document.getElementById("space-panel"));
@@ -193,6 +197,7 @@ try {
       cashChart.hide();
       monthlyChart.hide();
       curve.hide();
+      surface.hide();
       sens.hide();
       yearPanel.hide();
       space.hide();
@@ -222,6 +227,7 @@ try {
         }),
       );
       timed("월별 그래프", () => monthlyChart.update({ year1: base.year1, usage: state.usage, seasons: seasonSummary(base.year1, state.usage), dayShare: range.dayShares.base }));
+      timed("3D 그래프", () => surface.update({ values: billing ? { ...state.values, tariff_scale: 1 } : state.values, usage: state.usage, toInput: (v, u) => buildEngineInput(v, u, tiltData.table, fallbackRatios, billing), currentCapacity: input.capacityKwp, currentTilt: /** @type {number} */ (state.values.tilt_deg) }));
       timed("용량 곡선", () => curve.update({ input: withoutShare, dayShareLow, dayShareHigh, currentCapacity: input.capacityKwp, areaLimitKwp: gap.maxCapacityKwp }));
       timed("우주 비교", () =>
         space.update({
@@ -269,6 +275,7 @@ try {
     },
   }); // 계산 방식(누진·계절 요금표 / 한 단가)이나 기본요금 포함을 바꾸면 다시 계산
   const tabs = initTabs(document.getElementById("sidebar"));
+  createPolicyPanel(/** @type {HTMLElement} */ (document.getElementById("policy-panel")), policies, { applySubsidy: (krw) => controller.setValue("subsidy_krw", Math.round(krw)) });
   quick = createQuickControls(document.getElementById("quick-panel"), controller, (name) => tabs.show(name));
   quick.sync(state.values);
 
