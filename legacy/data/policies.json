@@ -194,7 +194,33 @@
           "label": "한국에너지공단 신재생에너지센터 사업공고 목록(공식)",
           "url": "https://www.knrec.or.kr/biz/pds/businoti/list.do"
         }
-      ]
+      ],
+      "basisYear": 2025,
+      "noticeNote": "안내 페이지에는 2026년 연초 공고 예정으로 적혀 있고 공고 번호는 없다. 2026년 공고 때 내용이 바뀔 수 있다고 함",
+      "steps": [
+        "사업 참여 신청 및 건물 현황 검토",
+        "한국에너지공단 보급협약 신청",
+        "지원 대상 선정 후 설계·시공",
+        "준공 확인"
+      ],
+      "unitSupport": [
+        {
+          "category": "일반 태양광",
+          "maxKw": 200,
+          "krwPerKw": 576000
+        },
+        {
+          "category": "RE100 또는 산업단지",
+          "maxKw": 1000,
+          "krwPerKw": 576000
+        },
+        {
+          "category": "축사",
+          "maxKw": 200,
+          "krwPerKw": 628000
+        }
+      ],
+      "unitSupportNote": "민간 시공사 안내 페이지의 2025년 기준 단가(원/kW)와 지원 용량 상한. 공식 공고로 확인하지 못한 참고 값이다"
     }
   ]
 }

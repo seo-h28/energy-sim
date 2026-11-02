@@ -18,6 +18,11 @@
  * @property {{ status: "unverified" | "reference" | "verified", text: string }} amount
  * @property {{ status: "unverified" | "verified", text: string }} eligibility
  * @property {{ label: string, url: string }[]} sources
+ * @property {number} [basisYear]            금액·단가의 기준 연도(있으면 화면에 표시)
+ * @property {string} [noticeNote]           공고 시기·변경 가능성 안내
+ * @property {string[]} [steps]              신청 절차(순서대로)
+ * @property {{ category: string, maxKw: number, krwPerKw: number }[]} [unitSupport]  용량 구간별 지원 단가표(원/kW). 값의 확인 정도는 amount.status를 따른다
+ * @property {string} [unitSupportNote]
  */
 
 /**
@@ -99,4 +104,21 @@ export async function loadPolicies(url = "data/policies.json") {
   const errors = validatePolicies(data);
   if (errors.length) throw new Error("policies 형식 오류:\n" + errors.join("\n"));
   return data;
+}
+
+/**
+ * 지원 단가표로 내 설계의 예상 지원액을 계산한다. 단가표가 없으면 null.
+ * 용량이 구간의 상한을 넘으면 넘는 부분을 어떻게 처리하는지 알 수 없으므로 추정액을 내지 않는다(공고 확인 필요).
+ * 결과는 단가표의 확인 정도(amount.status)를 그대로 따르는 "참고 추정"이며 확정 금액이 아니다.
+ * @param {Program} program
+ * @param {number} categoryIndex  unitSupport 안의 위치
+ * @param {number} capacityKwp    내 설계의 설치 용량 [kWp]
+ * @returns {{ category: string, maxKw: number, krwPerKw: number, fits: boolean, estimateKrw: number | null, reason: string } | null}
+ */
+export function supportEstimate(program, categoryIndex, capacityKwp) {
+  const u = program.unitSupport?.[categoryIndex];
+  if (!u) return null;
+  if (!(Number.isFinite(capacityKwp) && capacityKwp > 0)) return { ...u, fits: false, estimateKrw: null, reason: "설치 용량이 0보다 커야 계산할 수 있습니다." };
+  if (capacityKwp > u.maxKw) return { ...u, fits: false, estimateKrw: null, reason: `설치 용량 ${capacityKwp} kWp가 이 구간의 상한 ${u.maxKw} kW를 넘습니다. 넘는 부분의 처리는 공고에서 확인하세요.` };
+  return { ...u, fits: true, estimateKrw: Math.round(capacityKwp * u.krwPerKw), reason: "" };
 }
