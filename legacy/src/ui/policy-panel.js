@@ -55,9 +55,9 @@ export function createPolicyPanel(container, data, deps) {
     for (const n of notes) c.append(el("p", { class: "vis-warn" }, n));
     const facts = el("ul");
     for (const f of p.facts) facts.append(el("li", {}, f));
-    const unverified = el("ul", { class: "policy-unverified" });
+    const unverified = el("ul", { class: p.amount.status === "verified" ? "" : "policy-unverified" });
     unverified.append(el("li", {}, `지원 금액: ${p.amount.text}`), el("li", {}, `자격·대상: ${p.eligibility.text}`));
-    c.append(el("h5", {}, "조사에서 확인한 내용"), facts, el("h5", {}, "아직 확인하지 못한 것(공고에서 확인)"), unverified);
+    c.append(el("h5", {}, p.amount.status === "verified" ? "공고에서 확인한 내용" : "조사에서 확인한 내용"), facts, el("h5", {}, p.amount.status === "verified" ? "지원 금액과 자격(공고 기준)" : "아직 확인하지 못한 것(공고에서 확인)"), unverified);
     const links = el("p", { class: "policy-links" });
     for (const s of p.sources) {
       links.append(el("a", { href: s.url, target: "_blank", rel: "noopener noreferrer" }, `${s.label} ↗`), document.createTextNode(" "));
