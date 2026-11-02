@@ -20,7 +20,7 @@ const METHOD_SINGLE = "single";
  * @param {HTMLElement} container
  * @param {any} tariffData  data/tariffs.json
  * @param {import("./input-panel.js").InputController} controller
- * @returns {{ getState(): TariffState | null, setState(s: { id: string, tier: number, c: number, f: number, b?: 0 | 1, i?: 0 | 1 } | null): boolean, getBilling(): import("../core/billing.js").MonthBilling[] | null, onChange(fn: () => void): void }}
+ * @returns {{ getState(): TariffState | null, setState(s: { id: string, tier: number, c: number, f: number, fd?: number, b?: 0 | 1, i?: 0 | 1 } | null): boolean, getBilling(): import("../core/billing.js").MonthBilling[] | null, onChange(fn: () => void): void }}
  */
 export function renderTariffSelector(container, tariffData, controller) {
   /** @type {any[]} */
@@ -115,7 +115,7 @@ export function renderTariffSelector(container, tariffData, controller) {
     const tierIndex = tariff.kind === "tiered" ? Number(tierSelect.value) : 0;
     const single = describePrice(tariff, adders, tierIndex);
     const billText = describeBilling(tariff, { includeBasic: basicInput.checked });
-    const extra = `기후환경요금 ${fmt(adders.climateKrwPerKwh, 1)}원 + 연료비조정요금 ${fmt(adders.fuelAdjustmentKrwPerKwh, 1)}원을 단가에 더하고 부가세 10%·기반기금 3.2%(× ${Number((1 + adders.vatRate + adders.fundRate).toFixed(4))})를 곱합니다. 한전 요금표 2024-07-01 시행 값(현재 시행 여부 미확인).`;
+    const extra = `기후환경요금 ${fmt(adders.climateKrwPerKwh, 1)}원 + 연료비조정요금 ${fmt(adders.fuelAdjustmentKrwPerKwh, 1)}원을 단가에 더하고 부가세 10%·기반기금 ${Number((adders.fundRate * 100).toFixed(2))}%(× ${Number((1 + adders.vatRate + adders.fundRate).toFixed(4))})를 곱합니다. 부가세는 원 미만 반올림, 기금·청구금액은 10원 미만 버림(한전 방식)입니다. 요금표는 한전 2024-07-01 시행 값이며 2026-06-01 시행 종합 요금표에서도 같은 값을 확인했습니다.`;
     controller.setValue(PRICE_ID, effectivePriceKrwPerKwh(tariff, adders, tierIndex), {
       status: "reference",
       source: bill ? `월별 요금표로 계산 중이라 이 칸은 계산에 쓰이지 않습니다(참고용 한 단가). ${single}` : single,

@@ -6,14 +6,20 @@
 //  - 주택용(누진): 사용량이 단계 경계를 넘을 때마다 넘은 부분에 더 비싼 단가. 하계(7~8월)는 경계가 다르고,
 //    하계와 동계(12~2월)에 1,000 kWh 초과분은 슈퍼유저 단가.
 //  - 일반용·교육용(계절 단가): 달마다 계절 단가 하나(누진 없음). 기본요금(계약전력 기준)은 태양광으로 줄지 않는다고 보고 뺀다(가정).
-// 요금표는 data/tariffs.json(한전 2024-07-01 시행 값, 현재 시행 여부 미확인)이다. 계산식은 단순화이며 실제 청구서의 끝전 처리와 10원 미만 절사 등은 반영하지 않는다.
+// 요금표는 data/tariffs.json(한전 2024-07-01 시행 값. 기금률은 2.7%로 갱신, data/tariffs.json 참고)이다. 부가세는 원 미만 반올림, 기금과 청구금액은 10원 미만 버림(한전 방식)(floor10, 기본 켬). 사용량 kWh의 소수 처리 등 청구서의 나머지 끝전 규칙은 반영하지 않는다.
 
 /**
  * @typedef {Object} MonthBilling
  * @property {{ upTo: number, rate: number }[]} tiers  누적 사용량 구간별 단가(원/kWh, 전력량+기후환경+연료비조정). 마지막 upTo는 Infinity
  * @property {{ upTo: number, fee: number }[] | null} basic  사용량 단계별 기본요금(원). 없으면 null
  * @property {number} multiplier  1 + 부가세율 + 기금률
+ * @property {number} [vatRate]   부가세율. floor10과 함께 있으면 한전 정산 방식(아래)으로 계산
+ * @property {number} [fundRate]  기금률
+ * @property {boolean} [floor10]  true면 한전 청구 방식: 부가세 원 미만 반올림, 기금·청구금액 10원 미만 버림
  */
+
+/** 10원 미만 버림 */
+const floor10 = (/** @type {number} */ x) => Math.floor(x / 10 + 1e-9) * 10;
 
 /**
  * 한 달 요금 [원].
@@ -34,6 +40,12 @@ export function billKrw(spec, usageKwh) {
   if (spec.basic) {
     const tier = spec.basic.find((b) => u <= b.upTo) ?? spec.basic[spec.basic.length - 1];
     basic = tier.fee;
+  }
+  if (spec.floor10 && spec.vatRate !== undefined && spec.fundRate !== undefined) {
+    // 한전 정산: 전기요금계(원 미만 버림) + 부가세(원 미만 반올림) + 기금(10원 미만 버림), 합계는 10원 미만 버림.
+    // 블로그 손계산 예시 5개와 모두 일치(tests/billing.test.js). 부가세를 10원 단위로 버리면 450 kWh 예시가 맞지 않는다.
+    const base = Math.floor(energy + basic + 1e-9);
+    return floor10(base + Math.round(base * spec.vatRate) + floor10(base * spec.fundRate));
   }
   return (energy + basic) * spec.multiplier;
 }
@@ -65,11 +77,13 @@ export function validateMonthlyBilling(billing) {
  * 요금제 하나를 12개월 요금표로 바꾼다.
  * @param {any} tariff  data/tariffs.json의 요금제 항목
  * @param {{ climateKrwPerKwh: number, fuelAdjustmentKrwPerKwh: number, vatRate: number, fundRate: number }} adders
- * @param {{ includeBasic?: boolean }} [options]  includeBasic: 주택용 기본요금(단계별)을 포함할지(기본 true)
+ * @param {{ includeBasic?: boolean, floor10?: boolean }} [options]  includeBasic: 주택용 기본요금(단계별)을 포함할지(기본 true), floor10: 한전처럼 10원 미만 버림(기본 true)
  * @returns {MonthBilling[]}  1월부터 12월
  */
 export function buildMonthlyBilling(tariff, adders, options = {}) {
   const includeBasic = options.includeBasic ?? true;
+  const floor = options.floor10 ?? true;
+  const rounding = floor ? { vatRate: adders.vatRate, fundRate: adders.fundRate, floor10: true } : {};
   const add = adders.climateKrwPerKwh + adders.fuelAdjustmentKrwPerKwh;
   const multiplier = 1 + adders.vatRate + adders.fundRate;
   /** @type {MonthBilling[]} */
@@ -78,7 +92,7 @@ export function buildMonthlyBilling(tariff, adders, options = {}) {
     if (tariff.kind === "seasonal") {
       const season = Object.keys(tariff.seasonMonths).find((s) => tariff.seasonMonths[s].includes(month));
       if (!season) throw new RangeError(`${tariff.id}: ${month}월이 어느 계절에도 없음`);
-      out.push({ tiers: [{ upTo: Infinity, rate: tariff.seasonRatesKrwPerKwh[season] + add }], basic: null, multiplier });
+      out.push({ tiers: [{ upTo: Infinity, rate: tariff.seasonRatesKrwPerKwh[season] + add }], basic: null, multiplier, ...rounding });
       continue;
     }
     const limits = tariff.tierLimitsKwh;
@@ -96,7 +110,7 @@ export function buildMonthlyBilling(tariff, adders, options = {}) {
     const basic = includeBasic
       ? [{ upTo: lim.tier1Upto, fee: tariff.tiers[0].basicKrwPerHousehold }, { upTo: lim.tier2Upto, fee: tariff.tiers[1].basicKrwPerHousehold }, { upTo: Infinity, fee: tariff.tiers[2].basicKrwPerHousehold }]
       : null;
-    out.push({ tiers, basic, multiplier });
+    out.push({ tiers, basic, multiplier, ...rounding });
   }
   return out;
 }

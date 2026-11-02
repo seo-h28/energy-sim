@@ -12,7 +12,7 @@ export const MAX_DESIGNS = 4;
 const MAX_NAME_LENGTH = 24;
 
 /**
- * @typedef {{ id: string, tier: number, c: number, f: number, b?: 0 | 1, i?: 0 | 1 }} TariffState
+ * @typedef {{ id: string, tier: number, c: number, f: number, fd?: number, b?: 0 | 1, i?: 0 | 1 }} TariffState
  * @typedef {{ name: string, values: Record<string, number | null>, usage: number[], tariff: TariffState | null }} Design
  */
 
@@ -27,7 +27,7 @@ export function billingFromTariffState(tariffData, state) {
   const tariff = tariffData.tariffs.find((/** @type {any} */ t) => t.id === state.id);
   if (!tariff) return null;
   const a = tariffData.adders;
-  return buildMonthlyBilling(tariff, { climateKrwPerKwh: state.c, fuelAdjustmentKrwPerKwh: state.f, vatRate: a.vatRate.value, fundRate: a.fundRate.value }, { includeBasic: state.i !== 0 });
+  return buildMonthlyBilling(tariff, { climateKrwPerKwh: state.c, fuelAdjustmentKrwPerKwh: state.f, vatRate: a.vatRate.value, fundRate: state.fd ?? a.fundRate.value }, { includeBasic: state.i !== 0 });
 }
 
 /**

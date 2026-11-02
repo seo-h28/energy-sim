@@ -107,8 +107,8 @@ export function describePrice(tariff, adders, tierIndex = 0) {
   return (
     `${what} + 기후환경요금 ${n(adders.climateKrwPerKwh)}원 + 연료비조정요금 ${n(adders.fuelAdjustmentKrwPerKwh)}원` +
     ` = ${n(energy + adders.climateKrwPerKwh + adders.fuelAdjustmentKrwPerKwh)}원, ` +
-    `× ${Number((1 + adders.vatRate + adders.fundRate).toFixed(4))}(부가세 10%·기반기금 3.2%) = ${n(price)}원/kWh. ` +
-    `한전 요금표 2024-07-01 시행 값(현재 시행 여부 미확인), 기본요금 제외, 월 사용량에 따른 단계 변화 미반영`
+    `× ${Number((1 + adders.vatRate + adders.fundRate).toFixed(4))}(부가세 10%·기반기금 ${Number((adders.fundRate * 100).toFixed(2))}%) = ${n(price)}원/kWh. ` +
+    `한전 요금표 2024-07-01 시행 값(2026-06-01 시행 종합 요금표에서도 같은 값 확인), 기본요금 제외, 월 사용량에 따른 단계 변화 미반영`
   );
 }
 
