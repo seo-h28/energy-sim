@@ -53,6 +53,9 @@ export function validateMonthlyInput(input) {
   }
   const billing = /** @type {any} */ (input).monthlyBilling;
   if (billing !== undefined) errors.push(...validateMonthlyBilling(billing));
+  // 방위각은 선택 항목(방위각 표를 쓰는 화면에서만). 있으면 −90~90°
+  const az = /** @type {any} */ (input).azimuthDeg;
+  if (az !== undefined && !(Number.isFinite(az) && az >= -90 && az <= 90)) errors.push(`azimuthDeg: 방위각은 −90~90도 (받은 값 ${az})`);
   // 설치 가능 면적·kWp당 필요 면적은 선택 항목(에너지 결손 계산용). 있으면 0보다 커야 한다
   const roof = /** @type {any} */ (input).roofAreaM2;
   if (roof !== undefined && !(roof > 0 && Number.isFinite(roof))) errors.push(`roofAreaM2: 설치 가능 면적은 0보다 커야 함 (받은 값 ${roof})`);

@@ -14,6 +14,7 @@ export const BASE_TILT_DEG = 35;
  * @property {number[]} tilts            경사각 목록 [도], 0부터 90까지 오름차순
  * @property {number[]} annualKwhPerKwp  경사각별 연 발전량 [kWh/kWp]
  * @property {number[][]} months         경사각별 1~12월 발전량 [kWh/kWp/월]
+ * @property {import("./aspect.js").AspectTable} [aspect]  방위각 보정표(aspect.js). 있으면 방위각 입력으로 연 발전량을 보정한다
  * @property {number[]} [poaKwhM2]       경사각별 경사면 연 입사 에너지 [kWh/m²/년](PVGIS H(i)_y, 우주 비교의 지상 기준값). 없을 수도 있음
  */
 

@@ -15,7 +15,7 @@
  * @property {string[]} installKinds   rooftop | balcony | ground
  * @property {string} summary
  * @property {string[]} facts
- * @property {{ status: "unverified" | "verified", text: string }} amount
+ * @property {{ status: "unverified" | "reference" | "verified", text: string }} amount
  * @property {{ status: "unverified" | "verified", text: string }} eligibility
  * @property {{ label: string, url: string }[]} sources
  */

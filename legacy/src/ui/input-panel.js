@@ -8,6 +8,7 @@ import { el } from "./dom.js";
 const SLIDERS = {
   orientation_factor: { min: 0.8, max: 1.0, step: 0.01 },
   tilt_deg: { min: 0, max: 90, step: 1 },
+  azimuth_deg: { min: -90, max: 90, step: 1 },
 };
 
 /** 숫자 입력칸의 허용 범위. 0~1 비율 항목은 상한 1 */
@@ -61,7 +62,7 @@ export function renderInputPanel(container, data, onChange) {
 
   // 칸을 뜻이 비슷한 것끼리 묶어 소제목을 붙인다(목록에 없는 칸은 마지막 "기타"로)
   const GROUPS = [
-    ["설치 조건", ["capacity_kwp", "roof_area_m2", "area_per_kwp_m2", "tilt_deg", "orientation_factor", "yield_kwh_per_kwp", "loss_rate", "degradation_rate"], "group-install"],
+    ["설치 조건", ["capacity_kwp", "roof_area_m2", "area_per_kwp_m2", "tilt_deg", "azimuth_deg", "orientation_factor", "yield_kwh_per_kwp", "loss_rate", "degradation_rate"], "group-install"],
     ["비용", ["install_cost_krw_per_kwp", "subsidy_krw", "om_cost_krw_per_year"], "group-cost"],
     ["전기요금과 사용 방식", ["electricity_price_krw_per_kwh", "price_escalation_rate", "day_share_low", "day_share_high", "feed_in_price_krw_per_kwh"], "group-tariff"],
     ["계산 기간", ["discount_rate", "analysis_years"], "group-period"],

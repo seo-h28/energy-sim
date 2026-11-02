@@ -1,5 +1,6 @@
 // @ts-check
 import { validateTiltTable } from "./tilt.js";
+import { validateAspectTable } from "./aspect.js";
 
 // 월별 데이터 파일 불러오기·검사: 월별 발전 비율(data/monthly_yield_부산.json)과 월별 사용량 예시(data/monthly_usage_example.json).
 
@@ -50,7 +51,16 @@ export async function loadTiltTable(url = "data/monthly_yield_tilt_부산.json")
   const data = await loadJson(url);
   const errors = validateTiltTable(data);
   if (errors.length) throw new Error("monthly_yield_tilt 형식 오류:\n" + errors.join("\n"));
-  return { table: { tilts: data.tilts, annualKwhPerKwp: data.annualKwhPerKwp, months: data.months, poaKwhM2: data.poaKwhM2 }, meta: data.meta };
+  // 방위각 보정표(경사각 × 방위각). 표를 못 불러오면 방위각 보정은 쓰지 않는다(입력은 계속 동작)
+  /** @type {any} */
+  let aspect;
+  try {
+    const a = await loadJson("data/aspect_factor_부산.json");
+    if (validateAspectTable(a).length === 0) aspect = { tilts: a.tilts, aspects: a.aspects, ratio: a.ratio };
+  } catch {
+    aspect = undefined;
+  }
+  return { table: { tilts: data.tilts, annualKwhPerKwp: data.annualKwhPerKwp, months: data.months, poaKwhM2: data.poaKwhM2, ...(aspect ? { aspect } : {}) }, meta: data.meta };
 }
 
 /**

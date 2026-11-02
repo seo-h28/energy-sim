@@ -70,5 +70,194 @@
       "missingDaylightHours": 6,
       "used": true
     }
+  ],
+  "era5": {
+    "source": "PVGIS-ERA5 월별 수평면 일사 H(h)_m의 연도별 합(부산 35.18N 129.07E, 지형 고려), tools/fetch_pvgis_horizontal.py",
+    "status": "reference",
+    "years": [
+      {
+        "year": 2005,
+        "ghiKwhM2": 1655.5,
+        "daylightHours": 0,
+        "missingDaylightHours": 0,
+        "used": true
+      },
+      {
+        "year": 2006,
+        "ghiKwhM2": 1547.2,
+        "daylightHours": 0,
+        "missingDaylightHours": 0,
+        "used": true
+      },
+      {
+        "year": 2007,
+        "ghiKwhM2": 1579.7,
+        "daylightHours": 0,
+        "missingDaylightHours": 0,
+        "used": true
+      },
+      {
+        "year": 2008,
+        "ghiKwhM2": 1615.8,
+        "daylightHours": 0,
+        "missingDaylightHours": 0,
+        "used": true
+      },
+      {
+        "year": 2009,
+        "ghiKwhM2": 1589.4,
+        "daylightHours": 0,
+        "missingDaylightHours": 0,
+        "used": true
+      },
+      {
+        "year": 2010,
+        "ghiKwhM2": 1546.9,
+        "daylightHours": 0,
+        "missingDaylightHours": 0,
+        "used": true
+      },
+      {
+        "year": 2011,
+        "ghiKwhM2": 1560.1,
+        "daylightHours": 0,
+        "missingDaylightHours": 0,
+        "used": true
+      },
+      {
+        "year": 2012,
+        "ghiKwhM2": 1604.4,
+        "daylightHours": 0,
+        "missingDaylightHours": 0,
+        "used": true
+      },
+      {
+        "year": 2013,
+        "ghiKwhM2": 1638.2,
+        "daylightHours": 0,
+        "missingDaylightHours": 0,
+        "used": true
+      },
+      {
+        "year": 2014,
+        "ghiKwhM2": 1552.4,
+        "daylightHours": 0,
+        "missingDaylightHours": 0,
+        "used": true
+      },
+      {
+        "year": 2015,
+        "ghiKwhM2": 1550.0,
+        "daylightHours": 0,
+        "missingDaylightHours": 0,
+        "used": true
+      },
+      {
+        "year": 2016,
+        "ghiKwhM2": 1509.5,
+        "daylightHours": 0,
+        "missingDaylightHours": 0,
+        "used": true
+      },
+      {
+        "year": 2017,
+        "ghiKwhM2": 1637.3,
+        "daylightHours": 0,
+        "missingDaylightHours": 0,
+        "used": true
+      },
+      {
+        "year": 2018,
+        "ghiKwhM2": 1574.3,
+        "daylightHours": 0,
+        "missingDaylightHours": 0,
+        "used": true
+      },
+      {
+        "year": 2019,
+        "ghiKwhM2": 1596.7,
+        "daylightHours": 0,
+        "missingDaylightHours": 0,
+        "used": true
+      },
+      {
+        "year": 2020,
+        "ghiKwhM2": 1563.3,
+        "daylightHours": 0,
+        "missingDaylightHours": 0,
+        "used": true
+      },
+      {
+        "year": 2021,
+        "ghiKwhM2": 1561.5,
+        "daylightHours": 0,
+        "missingDaylightHours": 0,
+        "used": true
+      },
+      {
+        "year": 2022,
+        "ghiKwhM2": 1625.1,
+        "daylightHours": 0,
+        "missingDaylightHours": 0,
+        "used": true
+      },
+      {
+        "year": 2023,
+        "ghiKwhM2": 1546.7,
+        "daylightHours": 0,
+        "missingDaylightHours": 0,
+        "used": true
+      }
+    ]
+  },
+  "comparison": [
+    {
+      "year": 2015,
+      "asosKwhM2": 1407.2,
+      "era5KwhM2": 1550.0,
+      "asosOverEra5": -0.0921
+    },
+    {
+      "year": 2016,
+      "asosKwhM2": 1399.7,
+      "era5KwhM2": 1509.5,
+      "asosOverEra5": -0.0727
+    },
+    {
+      "year": 2017,
+      "asosKwhM2": 1505.3,
+      "era5KwhM2": 1637.3,
+      "asosOverEra5": -0.0806
+    },
+    {
+      "year": 2019,
+      "asosKwhM2": 1613.4,
+      "era5KwhM2": 1596.7,
+      "asosOverEra5": 0.0105
+    },
+    {
+      "year": 2020,
+      "asosKwhM2": 1586.2,
+      "era5KwhM2": 1563.3,
+      "asosOverEra5": 0.0146
+    },
+    {
+      "year": 2021,
+      "asosKwhM2": 1588.9,
+      "era5KwhM2": 1561.5,
+      "asosOverEra5": 0.0175
+    },
+    {
+      "year": 2022,
+      "asosKwhM2": 1655.9,
+      "era5KwhM2": 1625.1,
+      "asosOverEra5": 0.019
+    },
+    {
+      "year": 2023,
+      "asosKwhM2": 1589.1,
+      "era5KwhM2": 1546.7,
+      "asosOverEra5": 0.0274
+    }
   ]
 }

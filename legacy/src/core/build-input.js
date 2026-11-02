@@ -2,6 +2,7 @@
 // 화면의 입력값(가정 레지스트리 키) → 월별 엔진 입력 + 입력 검사. 결과 카드·그래프·민감도 분석이 같은 변환을 쓰도록 한 곳에 둔다.
 import { toEngineInput } from "./params.js";
 import { tiltProfile } from "./tilt.js";
+import { aspectFactor } from "./aspect.js";
 import { validateMonthlyInput, validateDayShareRange } from "./seasonal.js";
 
 /**
@@ -14,7 +15,11 @@ import { validateMonthlyInput, validateDayShareRange } from "./seasonal.js";
  */
 export function buildEngineInput(values, usage, tiltTable, fallbackRatios, billing = null) {
   const tilt = tiltProfile(tiltTable, /** @type {number} */ (values.tilt_deg));
-  const { input, dayShareLow, dayShareHigh } = toEngineInput(values, usage, tilt ? tilt.ratios : fallbackRatios, tilt ? tilt.annualFactor : 1);
+  // 방위각: 표(tiltTable.aspect)가 있고 방위각 값이 있을 때만 보정한다. 범위 밖이면 보정 1로 두고 입력 검사(validateMonthlyInput)가 오류로 알린다
+  const aspectTable = /** @type {any} */ (tiltTable).aspect;
+  const az = values.azimuth_deg;
+  const aspect = aspectTable && typeof az === "number" && typeof values.tilt_deg === "number" ? aspectFactor(aspectTable, values.tilt_deg, az) : null;
+  const { input, dayShareLow, dayShareHigh } = toEngineInput(values, usage, tilt ? tilt.ratios : fallbackRatios, tilt ? tilt.annualFactor : 1, aspect ?? 1);
   if (billing) {
     input.monthlyBilling = billing;
     input.billScale = typeof values.tariff_scale === "number" ? values.tariff_scale : 1;
