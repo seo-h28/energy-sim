@@ -20,12 +20,15 @@ export const PARAM_TO_INPUT = /** @type {const} */ ({
   day_share_high: "dayShareHigh",
   feed_in_price_krw_per_kwh: "feedInPriceKrwPerKwh",
   om_cost_krw_per_year: "omCostKrwPerYear",
+  net_metering: "netMetering",
+  inverter_replace_year: "inverterReplaceYear",
+  inverter_replace_krw: "inverterReplaceKrw",
   discount_rate: "discountRate",
   analysis_years: "analysisYears",
 });
 
 /** 재무 계산에 꼭 필요하지 않은 선택 입력: 값이 아예 없으면(undefined) 엔진 입력에서 빼서 검사하지 않는다(칸을 비운 null은 오류로 알림) */
-const OPTIONAL_PARAMS = new Set(["roof_area_m2", "area_per_kwp_m2", "azimuth_deg"]);
+const OPTIONAL_PARAMS = new Set(["roof_area_m2", "area_per_kwp_m2", "azimuth_deg", "net_metering", "inverter_replace_year", "inverter_replace_krw"]);
 
 /**
  * 입력칸의 값(+ 월별 사용량·월 비율)을 월별 엔진 입력으로 바꾼다.

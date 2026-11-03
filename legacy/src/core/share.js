@@ -16,6 +16,7 @@ const MAX_CURVE_KWP = 200;
  * @property {number[]} [u]                                   월별 사용량 12개(예시가 아닐 때만)
  * @property {{ id: string, tier: number, c: number, f: number, fd?: number, b?: 0 | 1, i?: 0 | 1 }} [t]  요금제 선택(id, 주택용 단계, 기후환경요금, 연료비조정요금, 월별 요금표 계산 여부 b, 주택용 기본요금 포함 여부 i). b가 없으면(옛 링크) 단일 단가
  * @property {number} [m]                                     용량 곡선의 탐색 최대 용량(직접 지정했을 때만)
+ * @property {number} [d]                                     기본값 세대(2 = 2026-11-03에 바뀐 기본값으로 만든 링크). 없으면 그 이전 기본값 기준 링크
  */
 
 /** @param {Uint8Array} bytes */
@@ -45,6 +46,7 @@ export function encodeShare(state) {
   if (state.u) payload.u = state.u;
   if (state.t) payload.t = state.t;
   if (state.m !== undefined) payload.m = state.m;
+  if (state.d !== undefined) payload.d = state.d;
   return SHARE_PREFIX + toBase64Url(new TextEncoder().encode(JSON.stringify(payload)));
 }
 
@@ -94,6 +96,10 @@ export function decodeShare(hash, knownParamIds) {
     if (t.fd !== undefined) state.t.fd = t.fd;
     if (t.b !== undefined) state.t.b = t.b;
     if (t.i !== undefined) state.t.i = t.i;
+  }
+  if (data.d !== undefined) {
+    if (!Number.isInteger(data.d) || data.d < 1) return { ok: false, error: "공유 링크의 기본값 정보가 올바르지 않습니다." };
+    state.d = data.d;
   }
   if (data.m !== undefined) {
     if (!isNum(data.m) || data.m <= 0 || data.m > MAX_CURVE_KWP) return { ok: false, error: "공유 링크의 탐색 범위가 올바르지 않습니다." };

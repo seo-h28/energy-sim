@@ -41,14 +41,14 @@ export const REGIONS = Object.freeze([
 ]);
 export const BUILDING_TYPES = Object.freeze([
   { id: "detached", label: "단독주택" },
-  { id: "apartment", label: "공동주택(아파트·빌라)" },
-  { id: "building", label: "상가·사무 건물" },
+  { id: "apartment", label: "아파트·빌라" },
+  { id: "building", label: "가게·사무실 건물" },
   { id: "factory", label: "공장·창고" },
 ]);
 export const INSTALL_KINDS = Object.freeze([
   { id: "rooftop", label: "옥상·지붕" },
-  { id: "balcony", label: "베란다·발코니(소형)" },
-  { id: "ground", label: "지상(마당·대지)" },
+  { id: "balcony", label: "베란다·발코니(작은 것)" },
+  { id: "ground", label: "마당·땅" },
 ]);
 
 /** @param {any} data  policies.json */
@@ -84,10 +84,10 @@ export function matchPolicies(profile, data) {
     /** @type {string[]} */
     const reasons = [];
     if (!regionOk) reasons.push("지역이 맞지 않음");
-    if (!typeOk) reasons.push("건물 유형이 맞지 않음");
-    if (!kindOk) reasons.push("설치 형태가 맞지 않음");
+    if (!typeOk) reasons.push("집(건물) 종류가 맞지 않음");
+    if (!kindOk) reasons.push("다는 곳이 맞지 않음");
     if (regionOk && typeOk && kindOk) matches.push({ program, kind: "full", notes: [] });
-    else if (regionOk && typeOk) matches.push({ program, kind: "partial", notes: ["지역·건물 유형은 맞지만 설치 형태가 사업의 설명과 다릅니다. 공고에서 대상 설비를 확인하세요."] });
+    else if (regionOk && typeOk) matches.push({ program, kind: "partial", notes: ["지역과 집 종류는 맞지만, 다는 곳(옥상·베란다 등)이 이 사업의 설명과 다릅니다. 공고에서 어떤 설비가 대상인지 확인하세요."] });
     else others.push({ program, reasons });
   }
   // 전부 맞는 것 먼저, 같으면 전국 사업 → 지자체 순
@@ -127,19 +127,19 @@ export function supportEstimate(program, categoryIndex, capacityKwp, installCost
   if (program.ratePct !== undefined) {
     const max = program.maxKw ?? Infinity;
     const base = { category: `설치 단가의 ${Math.round(program.ratePct * 100)}%`, maxKw: max, krwPerKw: Number.isFinite(installCostKrwPerKwp) ? installCostKrwPerKwp * program.ratePct : NaN };
-    if (!(Number.isFinite(capacityKwp) && capacityKwp > 0)) return { ...base, fits: false, estimateKrw: null, reason: "설치 용량이 0보다 커야 계산할 수 있습니다." };
-    if (capacityKwp > max) return { ...base, fits: false, estimateKrw: null, reason: `설치 용량 ${capacityKwp} kWp가 지원 설비 상한 ${max} kW를 넘습니다(미니태양광은 500W 이하 1식).` };
-    if (!(Number.isFinite(installCostKrwPerKwp) && installCostKrwPerKwp > 0)) return { ...base, fits: true, estimateKrw: null, reason: "입력 탭에서 kWp당 설치비를 입력해야 계산할 수 있습니다." };
+    if (!(Number.isFinite(capacityKwp) && capacityKwp > 0)) return { ...base, fits: false, estimateKrw: null, reason: "패널 크기가 0보다 커야 계산할 수 있습니다." };
+    if (capacityKwp > max) return { ...base, fits: false, estimateKrw: null, reason: `패널 크기 ${capacityKwp} kWp가 이 사업에서 지원하는 최대 크기 ${max} kW를 넘어 받을 수 없습니다(미니 태양광은 500W 이하 1대).` };
+    if (!(Number.isFinite(installCostKrwPerKwp) && installCostKrwPerKwp > 0)) return { ...base, fits: true, estimateKrw: null, reason: "설치비를 넣어야 계산할 수 있습니다." };
     return { ...base, fits: true, estimateKrw: floorTo(capacityKwp * installCostKrwPerKwp * program.ratePct, 1), reason: "" };
   }
   const u = program.unitSupport?.[categoryIndex];
   if (!u) return null;
-  if (!(Number.isFinite(capacityKwp) && capacityKwp > 0)) return { ...u, fits: false, estimateKrw: null, reason: "설치 용량이 0보다 커야 계산할 수 있습니다." };
-  if (u.minKw !== undefined && capacityKwp <= u.minKw) return { ...u, fits: false, estimateKrw: null, reason: `설치 용량 ${capacityKwp} kWp는 이 구간(${u.minKw} kW 초과)에 해당하지 않습니다. 위의 낮은 구간을 고르세요.` };
-  if (u.ambiguous) return { ...u, fits: capacityKwp <= u.maxKw, estimateKrw: null, reason: "공고의 표만으로는 이 구간의 단가를 전체 용량에 적용하는지 초과분에만 적용하는지 알 수 없어 추정하지 않습니다. 공고와 센터에 확인하세요." };
+  if (!(Number.isFinite(capacityKwp) && capacityKwp > 0)) return { ...u, fits: false, estimateKrw: null, reason: "패널 크기가 0보다 커야 계산할 수 있습니다." };
+  if (u.minKw !== undefined && capacityKwp <= u.minKw) return { ...u, fits: false, estimateKrw: null, reason: `패널 크기 ${capacityKwp} kWp는 이 항목(${u.minKw} kW 넘는 구간)에 해당하지 않습니다. 더 작은 크기의 항목을 고르세요.` };
+  if (u.ambiguous) return { ...u, fits: capacityKwp <= u.maxKw, estimateKrw: null, reason: "이 구간의 금액을 전체 용량에 적용하는지 넘는 부분에만 적용하는지 공고의 표만으로는 알 수 없어 계산하지 않습니다. 센터에 확인하세요." };
   if (capacityKwp > u.maxKw) {
-    if (u.capAtMax) return { ...u, fits: true, estimateKrw: floorTo(u.maxKw * u.krwPerKw, u.floorKrw), reason: `설치 용량이 기준 ${u.maxKw} kW를 넘지만, 공고는 보조금을 기준 범위 안에서만 지급한다고 밝혀 ${u.maxKw} kW까지만 계산했습니다(설비는 기준의 110%까지 설치 가능).` };
-    return { ...u, fits: false, estimateKrw: null, reason: `설치 용량 ${capacityKwp} kWp가 이 구간의 상한 ${u.maxKw} kW를 넘습니다. 넘는 부분의 처리는 공고에서 확인하세요.` };
+    if (u.capAtMax) return { ...u, fits: true, estimateKrw: floorTo(u.maxKw * u.krwPerKw, u.floorKrw), reason: `패널이 ${u.maxKw} kW보다 크지만 보조금은 ${u.maxKw} kW 몫까지만 나와서 ${u.maxKw} kW로 계산했습니다(설비는 ${Number((u.maxKw * 1.1).toFixed(2))} kW까지 달 수 있음).` };
+    return { ...u, fits: false, estimateKrw: null, reason: `패널 크기 ${capacityKwp} kWp가 이 항목의 최대 ${u.maxKw} kW를 넘습니다. 넘는 부분을 어떻게 하는지는 공고에서 확인하세요.` };
   }
   return { ...u, fits: true, estimateKrw: floorTo(capacityKwp * u.krwPerKw, u.floorKrw), reason: "" };
 }

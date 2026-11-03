@@ -9,6 +9,11 @@
 //
 // 요금: 기본은 단일 단가. monthlyBilling(12개월 요금표, billing.js)이 있으면 누진·계절 요금으로
 //        절감[m] = (요금(사용량[m]) − 요금(사용량[m] − 자가소비[m])) × 요금 상승 + 잉여[m] × 판매단가 로 계산한다(S13).
+// 상계거래(netMetering = 1, 선택): 잉여를 kWh로 적립(이월)했다가 그 달·이후 달에 한전에서 사는 전기에서 뺀다.
+//        한전에서 사는 전기[m] = 사용량[m] − 자가소비[m],  상계[m] = min(적립, 한전에서 사는 전기[m])
+//        절감[m] = 요금(사용량) − 요금(사용량 − 자가소비 − 상계)  (단일 단가면 (자가소비 + 상계) × 단가)
+//        적립은 해마다 1월에 0에서 시작하고(보수적 단순화), 12월 말에 남은 적립 × 판매단가를 12월 절감에 더한다.
+// 인버터 교체(선택): inverterReplaceYear 해의 현금흐름에서 inverterReplaceKrw를 뺀다(0이면 없음).
 // 단순화(화면에 공개): 사용량은 해마다 같고,
 // 월 단위 합산은 낮 발전·저녁 사용의 시간대 차이를 완전히 반영하지 못하는 근사다.
 
@@ -54,6 +59,12 @@ export function validateMonthlyInput(input) {
   const billing = /** @type {any} */ (input).monthlyBilling;
   if (billing !== undefined) errors.push(...validateMonthlyBilling(billing));
   // 방위각은 선택 항목(방위각 표를 쓰는 화면에서만). 있으면 −90~90°
+  const nm = /** @type {any} */ (input).netMetering;
+  if (nm !== undefined && nm !== 0 && nm !== 1) errors.push(`netMetering: 상계거래는 0(안 함) 또는 1(함) (받은 값 ${nm})`);
+  const invYear = /** @type {any} */ (input).inverterReplaceYear;
+  if (invYear !== undefined && !(Number.isInteger(invYear) && invYear >= 0)) errors.push(`inverterReplaceYear: 인버터 교체 시점은 0 이상의 정수 연도 (받은 값 ${invYear})`);
+  const invKrw = /** @type {any} */ (input).inverterReplaceKrw;
+  if (invKrw !== undefined && !(Number.isFinite(invKrw) && invKrw >= 0)) errors.push(`inverterReplaceKrw: 인버터 교체비는 0 이상 (받은 값 ${invKrw})`);
   const az = /** @type {any} */ (input).azimuthDeg;
   if (az !== undefined && !(Number.isFinite(az) && az >= -90 && az <= 90)) errors.push(`azimuthDeg: 방위각은 −90~90도 (받은 값 ${az})`);
   // 설치 가능 면적·kWp당 필요 면적은 선택 항목(에너지 결손 계산용). 있으면 0보다 커야 한다
@@ -69,7 +80,7 @@ export function validateMonthlyInput(input) {
  * y년차 월별 내역.
  * @param {MonthlyInput} input
  * @param {number} year  1부터 시작
- * @returns {{ gen: number[], self: number[], export: number[], saving: number[] }}  각 길이 12 (절감은 유지비를 빼기 전)
+ * @returns {{ gen: number[], self: number[], export: number[], offset: number[], saving: number[] }}  각 길이 12 (절감은 유지비를 빼기 전). offset: 상계거래로 적립분에서 뺀 전기(상계 안 하면 0)
  */
 export function monthlyBreakdown(input, year) {
   const yearGen = annualGeneration(input, year);
@@ -78,22 +89,35 @@ export function monthlyBreakdown(input, year) {
   /** @type {MonthBilling[] | undefined} */
   const billing = /** @type {any} */ (input).monthlyBilling;
   const billScale = /** @type {any} */ (input).billScale ?? 1;
+  const netMetering = /** @type {any} */ (input).netMetering === 1;
   /** @type {number[]} */ const gen = [];
   /** @type {number[]} */ const self = [];
   /** @type {number[]} */ const exp = [];
+  /** @type {number[]} */ const offset = [];
   /** @type {number[]} */ const saving = [];
+  let credit = 0; // 상계거래 적립(kWh)
   for (let m = 0; m < MONTHS; m++) {
     const g = yearGen * input.monthlyRatios[m];
     const s = Math.min(g, input.monthlyUsageKwh[m] * input.dayShare);
+    const u = input.monthlyUsageKwh[m];
+    let o = 0;
+    if (netMetering) {
+      credit += g - s;
+      o = Math.min(credit, u - s);
+      credit -= o;
+    }
     gen.push(g);
     self.push(s);
     exp.push(g - s);
-    const u = input.monthlyUsageKwh[m];
-    // 월별 요금표가 있으면 "요금(사용량) − 요금(사용량 − 자가소비)", 없으면 단일 단가(S13)
-    const bill = billing ? escalation * billScale * (billKrw(billing[m], u) - billKrw(billing[m], u - s)) : s * price;
-    saving.push(bill + (g - s) * input.feedInPriceKrwPerKwh);
+    offset.push(o);
+    const cut = s + o; // 한전에서 덜 사는 전기
+    // 월별 요금표가 있으면 "요금(사용량) − 요금(사용량 − 자가소비 − 상계)", 없으면 단일 단가(S13)
+    const bill = billing ? escalation * billScale * (billKrw(billing[m], u) - billKrw(billing[m], u - cut)) : cut * price;
+    // 상계하면 잉여는 적립으로 쓰이고, 해 끝에 남은 적립만 판매단가로 계산한다
+    saving.push(bill + (netMetering ? 0 : (g - s) * input.feedInPriceKrwPerKwh));
   }
-  return { gen, self, export: exp, saving };
+  if (netMetering) saving[MONTHS - 1] += credit * input.feedInPriceKrwPerKwh;
+  return { gen, self, export: exp, offset, saving };
 }
 
 /**
@@ -107,6 +131,16 @@ export function monthlyAnnualSaving(input, year) {
 }
 
 /**
+ * y년차 인버터 교체비 [원]. 교체 시점·금액이 없거나 0이면 0
+ * @param {any} input
+ * @param {number} year
+ * @returns {number}
+ */
+export function inverterCostAt(input, year) {
+  return input.inverterReplaceYear > 0 && input.inverterReplaceYear === year && input.inverterReplaceKrw > 0 ? input.inverterReplaceKrw : 0;
+}
+
+/**
  * 연도별 현금흐름 [원] (길이 N+1, 0번은 −순 투자비). 입력이 잘못되면 RangeError.
  * @param {MonthlyInput} input
  * @returns {number[]}
@@ -115,20 +149,21 @@ export function monthlyCashFlows(input) {
   const errors = validateMonthlyInput(input);
   if (errors.length) throw new RangeError("월별 입력 오류:\n" + errors.join("\n"));
   const flows = [-netInvestment(/** @type {any} */ (input))];
-  for (let y = 1; y <= input.analysisYears; y++) flows.push(monthlyAnnualSaving(input, y));
+  for (let y = 1; y <= input.analysisYears; y++) flows.push(monthlyAnnualSaving(input, y) - inverterCostAt(input, y));
   return flows;
 }
 
 /**
  * 결과 요약 + 1년차 월별 내역과 비율 지표.
  * @param {MonthlyInput} input
- * @returns {import("./finance.js").Summary & { year1: ReturnType<typeof monthlyBreakdown>, selfConsumptionRate: number, selfSufficiencyRate: number }}
+ * @returns {import("./finance.js").Summary & { year1: ReturnType<typeof monthlyBreakdown>, selfConsumptionRate: number, selfSufficiencyRate: number, billCoverRate: number }}
  */
 export function summarizeMonthly(input) {
   const flows = monthlyCashFlows(input);
   const year1 = monthlyBreakdown(input, 1);
   const genTotal = year1.gen.reduce((a, b) => a + b, 0);
   const selfTotal = year1.self.reduce((a, b) => a + b, 0);
+  const offsetTotal = year1.offset.reduce((a, b) => a + b, 0);
   const usageTotal = input.monthlyUsageKwh.reduce((a, b) => a + b, 0);
   return {
     ...summaryFromFlows(flows, input.discountRate, input.analysisYears),
@@ -136,6 +171,8 @@ export function summarizeMonthly(input) {
     // 자가소비율 = 자가소비 ÷ 발전량, 자급률 = 자가소비 ÷ 총 사용량 (spec 5.6)
     selfConsumptionRate: genTotal > 0 ? selfTotal / genTotal : 0,
     selfSufficiencyRate: usageTotal > 0 ? selfTotal / usageTotal : 0,
+    // 상계까지 합친 몫: (자가소비 + 상계) ÷ 사용량. 상계거래를 하면 "요금에서 빠지는 전기"의 비율
+    billCoverRate: usageTotal > 0 ? (selfTotal + offsetTotal) / usageTotal : 0,
   };
 }
 
@@ -183,9 +220,9 @@ export const SEASONS = Object.freeze([
 
 /**
  * 1년차 월별 내역을 계절별로 합친다(화면의 계절 요약용).
- * @param {{ gen: number[], self: number[], export: number[], saving: number[] }} year1
+ * @param {{ gen: number[], self: number[], export: number[], saving: number[], offset?: number[] }} year1
  * @param {number[]} monthlyUsageKwh
- * @returns {{ id: string, label: string, usageKwh: number, genKwh: number, selfKwh: number, exportKwh: number, savingKrw: number, selfSufficiency: number }[]}
+ * @returns {{ id: string, label: string, usageKwh: number, genKwh: number, selfKwh: number, exportKwh: number, offsetKwh: number, savingKrw: number, selfSufficiency: number }[]}
  */
 export function seasonSummary(year1, monthlyUsageKwh) {
   return SEASONS.map((s) => {
@@ -199,6 +236,7 @@ export function seasonSummary(year1, monthlyUsageKwh) {
       genKwh: sum(year1.gen),
       selfKwh,
       exportKwh: sum(year1.export),
+      offsetKwh: sum(year1.offset ?? year1.export.map(() => 0)),
       savingKrw: sum(year1.saving),
       selfSufficiency: usageKwh > 0 ? selfKwh / usageKwh : 0,
     };
@@ -220,7 +258,7 @@ export function lcoeKrwPerKwh(input) {
   let energy = 0;
   for (let y = 1; y <= input.analysisYears; y++) {
     const d = Math.pow(1 + r, y);
-    cost += input.omCostKrwPerYear / d;
+    cost += (input.omCostKrwPerYear + inverterCostAt(input, y)) / d;
     energy += annualGeneration(/** @type {any} */ (input), y) / d;
   }
   return energy > 0 ? cost / energy : null;

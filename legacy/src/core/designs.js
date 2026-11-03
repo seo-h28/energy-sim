@@ -1,7 +1,7 @@
 // @ts-check
 // 설계안 비교(S7, spec 6-5): 지금 입력한 설계를 "설계안"으로 저장해 두고(최대 4개) 나란히 비교한다.
 // 설계안 = 입력값 전체(가정 레지스트리 키: 값) + 월별 사용량 + 요금제 상태. 평가는 화면의 결과 카드와 같은 계산(buildEngineInput → summarizeRange)을 쓴다.
-// 최고값 표시: NPV 최대, 회수기간 최단, LCOE 최저, 자급률 최고(같은 값이면 모두 표시, 모든 설계안이 같으면 표시하지 않음).
+// 최고값 표시: 순이익 최대, 본전 기간 최단, 1kWh 생산 원가 최저, 태양광이 채운 몫 최고(같은 값이면 모두 표시, 모든 설계안이 같으면 표시하지 않음).
 
 import { cumulativeFlows } from "./finance.js";
 import { summarizeRange, lcoeKrwPerKwh } from "./seasonal.js";
@@ -100,10 +100,10 @@ export function evaluateDesign(design, ctx) {
 
 /**
  * @typedef {Object} BestSets
- * @property {number[]} npv           NPV가 가장 큰 설계안의 번호들
- * @property {number[]} payback       회수기간이 가장 짧은 번호들(회수 불가는 가장 나쁨)
- * @property {number[]} lcoe          LCOE가 가장 낮은 번호들
- * @property {number[]} selfSufficiency  자급률이 가장 높은 번호들
+ * @property {number[]} npv           순이익이 가장 큰 설계안의 번호들
+ * @property {number[]} payback       본전 기간이 가장 짧은 번호들(본전 못 찾음는 가장 나쁨)
+ * @property {number[]} lcoe          1kWh 생산 원가가 가장 낮은 번호들
+ * @property {number[]} selfSufficiency  태양광이 채운 몫이 가장 높은 번호들
  */
 
 const SAME = 1e-9;
@@ -113,7 +113,7 @@ const same = (/** @type {number} */ a, /** @type {number} */ b) => Math.abs(a - 
  * 값 목록에서 가장 좋은 번호들(목록 안의 위치). 비교할 값이 2개 미만이거나 모두 같으면 빈 목록(표시할 차이가 없음).
  * @param {(number | null)[]} values
  * @param {"max" | "min"} mode
- * @param {boolean} nullIsWorst  true면 null(예: 회수 불가)을 가장 나쁜 값으로 비교에 포함, false면 null을 비교에서 뺌
+ * @param {boolean} nullIsWorst  true면 null(예: 본전 못 찾음)을 가장 나쁜 값으로 비교에 포함, false면 null을 비교에서 뺌
  * @returns {number[]}
  */
 export function bestIndices(values, mode, nullIsWorst) {

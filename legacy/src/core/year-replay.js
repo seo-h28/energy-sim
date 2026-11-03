@@ -27,7 +27,7 @@ export function yearFactors(years) {
 }
 
 /**
- * 해마다 연 발전량(kWp당)을 배수만큼 바꿔 NPV·회수기간을 계산한다.
+ * 해마다 연 발전량(kWp당)을 배수만큼 바꿔 순이익·본전 기간을 계산한다.
  * @param {Record<string, number | null | undefined>} baseValues  가정 레지스트리 값(snake_case)
  * @param {number[]} usage
  * @param {(values: Record<string, number | null | undefined>, usage: number[]) => { input: any, dayShareLow: number, dayShareHigh: number, errors: string[] }} toInput

@@ -96,7 +96,7 @@ export function seasonOfMonth(month) {
 }
 
 /**
- * 월별 막대 높이(0~1): 12개월의 발전량·사용량 중 가장 큰 값을 1로 맞춘다. coverage는 그 달 사용량 중 태양광이 채운 몫(자가소비 ÷ 사용량).
+ * 월별 막대 높이(0~1): 12개월의 발전량·사용량 중 가장 큰 값을 1로 맞춘다. coverage는 그 달 사용량 중 태양광이 채운 몫(바로 쓴 전기 ÷ 사용량).
  * @param {{ gen: number[], usage: number[], self: number[] }} d  각 길이 12
  * @returns {{ max: number, months: { month: number, season: string, genFraction: number, usageFraction: number, coverage: number }[] }}
  */
@@ -152,7 +152,7 @@ export function seasonStory(d) {
   return out;
 }
 
-// ── 에너지 결손 그림 ──
+// ── 지붕 면적(에너지 결손) 그림 ──
 
 /**
  * 에너지 결손을 쉬운 문장으로. 숫자는 gap.js의 결과를 그대로 옮긴다.
@@ -166,9 +166,9 @@ export function gapStory(g, a) {
   const n1 = (/** @type {number} */ n) => Number(n.toFixed(1)).toLocaleString("ko-KR");
   const out = [`설치 가능 면적 ${n1(a.roofAreaM2)} m²에는 최대 ${n2(g.maxCapacityKwp)} kWp를 놓을 수 있습니다(1 kWp당 ${n1(a.areaPerKwpM2)} m²로 계산).`];
   if (g.gapYearKwh > 1e-9) {
-    out.push(`그만큼 설치하면 1년에 약 ${k(g.genYearKwh)}를 만들어 연 사용량 ${k(g.usageYearKwh)}의 ${Math.round(g.coverage * 100)}%를 채우고, 연 ${k(g.gapYearKwh)}(${Math.round((1 - g.coverage) * 100)}%)가 모자랍니다. 이것이 에너지 결손입니다.`);
+    out.push(`지붕을 다 채워 설치하면 1년에 약 ${k(g.genYearKwh)}를 만들어 연 사용량 ${k(g.usageYearKwh)}의 ${Math.round(g.coverage * 100)}%를 채우고, 연 ${k(g.gapYearKwh)}(${Math.round((1 - g.coverage) * 100)}%)가 모자랍니다(1년 합계 기준).`);
   } else {
-    out.push(`그만큼 설치하면 1년에 약 ${k(g.genYearKwh)}를 만들어 연 사용량 ${k(g.usageYearKwh)}를 모두 채울 수 있습니다(결손 없음). 연 합계로 ${k(g.genYearKwh - g.usageYearKwh)}가 남습니다.`);
+    out.push(`지붕을 다 채워 설치하면 1년에 약 ${k(g.genYearKwh)}를 만들어, 1년 합계로는 연 사용량 ${k(g.usageYearKwh)}보다 ${k(g.genYearKwh - g.usageYearKwh)} 많습니다. 다만 밤에 쓰는 전기는 바로 채울 수 없어, 상계거래를 하지 않으면 실제로 요금에서 빠지는 전기는 이보다 적습니다.`);
   }
   const extraArea = g.fullCoverAreaM2 - a.roofAreaM2;
   out.push(

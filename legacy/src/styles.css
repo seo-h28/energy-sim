@@ -471,14 +471,6 @@ table.assumptions details p { margin-top: 6px; color: var(--muted); font-size: 1
 .concept-words dd { margin: 2px 0 0; color: var(--muted); }
 @media (max-width: 900px) { .concept-steps, .concept-words { grid-template-columns: minmax(0, 1fr); } }
 
-/* 작은 설명 글 숨김(React 판만: notes-ready가 있을 때. "설명 보기"를 누르면 notes-on). 경고·오류·상태 문구(keep, role=status)는 항상 보인다 */
-html.notes-ready:not(.notes-on) .card-note:not(.keep):not([role="status"]),
-html.notes-ready:not(.notes-on) .curve-bullets:not(.keep),
-html.notes-ready:not(.notes-on) .dg-caption,
-html.notes-ready:not(.notes-on) .vis-legend,
-html.notes-ready:not(.notes-on) .vis-story,
-html.notes-ready:not(.notes-on) .vis-note,
-html.notes-ready:not(.notes-on) .guide-body { display: none; }
 
 @media (max-width: 640px) {
   .inputs-results .cards { grid-template-columns: minmax(0, 1fr); }
@@ -498,3 +490,48 @@ html.notes-ready:not(.notes-on) .guide-body { display: none; }
 .more > summary { cursor: pointer; font-weight: 700; }
 .more > .input-grid { margin-top: 12px; }
 #input-panel .more { margin-top: 18px; }
+
+/* 간단 계산 + 본전·흑자 */
+.simple-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px 20px; }
+.simple-field { display: grid; gap: 6px; grid-template-columns: minmax(0, 1fr); align-content: start; min-width: 0; }
+.simple-field > label { font-size: 16px; }
+.simple-control { display: flex; align-items: center; gap: 8px; min-width: 0; }
+.simple-control input, .simple-control select { flex: 1; min-width: 0; }
+.simple-wide { grid-column: 1 / -1; }
+.simple-support { color: #34d399; margin: 4px 0 0; }
+#breakeven-panel { text-align: center; }
+.be-main { font-size: 30px; font-weight: 800; margin: 4px 0 14px; }
+.be-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
+.be-grid > div { background: var(--bg); border: 1px solid var(--border); border-radius: 12px; padding: 12px 8px; display: grid; gap: 6px; min-width: 0; overflow-wrap: anywhere; }
+.be-grid span { color: var(--muted); font-size: 14px; }
+.be-grid strong { font-size: 20px; }
+.be-plus strong { color: #34d399; }
+.be-minus strong { color: #f87171; }
+@media (max-width: 640px) { .be-grid { grid-template-columns: minmax(0, 1fr); } .be-main { font-size: 24px; } }
+
+/* 입력·결과 탭: 본전 문장은 위의 큰 글씨로 보이므로 타임라인 위 문장은 감춘다 */
+.inputs-results #story-panel .vis-headline { display: none; }
+
+/* 2026-11-03 구매자 관점 점검: 간단 계산 보조 문구, 포함 항목, 좁은 화면 */
+.simple-note { color: var(--muted); font-size: 14px; margin: 4px 0 0; }
+.simple-control select#simple-usage-mode { flex: 0 0 auto; max-width: 48%; }
+.be-include { color: var(--muted); font-size: 14px; margin: 10px 0 0; }
+.nav-label { white-space: nowrap; }
+.mini-result { display: none; }
+@media (max-width: 1100px) {
+  /* 좁은 화면: 입력을 먼저 보이고(결과는 아래), 화면 아래에 결과 한 줄을 붙여 둔다 */
+  .inputs-results { order: 0; }
+  .mini-result { display: flex; position: sticky; bottom: 0; z-index: 15; margin: 0 -14px; padding: 10px 14px; gap: 10px; align-items: center; justify-content: space-between; background: var(--surface); border-top: 1px solid var(--border); box-shadow: 0 -6px 16px rgba(0, 0, 0, 0.35); }
+  .mini-result strong { font-size: 17px; }
+  .mini-result span { color: var(--muted); font-size: 14px; }
+  .mini-result button { margin-top: 0; padding: 7px 12px; font-size: 14px; white-space: nowrap; }
+}
+@media (max-width: 560px) {
+  /* 공유 링크 칸은 숨기고 복사 버튼만 */
+  #share-bar label, #share-url { display: none; }
+  .simple-control select#simple-usage-mode { max-width: 55%; }
+}
+.quick-result { margin: 4px 0 12px; font-weight: 700; color: #34d399; }
+.policy-plain { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 8px 14px; margin: 12px 0; }
+.policy-plain dt { font-weight: 700; color: var(--muted); }
+.policy-plain dd { margin: 0; }

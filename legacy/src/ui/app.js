@@ -123,6 +123,11 @@ try {
   /** @type {ReturnType<typeof createQuickControls> | null} */
   let quick = null;
   let applying = true; // 시작 설정과 공유 링크를 되살리는 동안은 주소를 바꾸지 않는다
+  // 공유 링크의 기본값 세대(React 판 store.tsx와 같은 규칙): 2 = 2026-11-03에 바뀐 기본값(주택용 월별 요금표, 3 kWp, 상계거래 등).
+  // 표시가 없는 옛 링크는 링크에 없는 값을 그때의 기본값으로 채운다. 요금제가 없는 새 링크는 주택용 월별 요금표다
+  const DEFAULTS_GENERATION = 2;
+  const LEGACY_DEFAULTS = { capacity_kwp: 1, install_cost_krw_per_kwp: 1_000_000, electricity_price_krw_per_kwh: 100, degradation_rate: 0, net_metering: 0, inverter_replace_year: 0, inverter_replace_krw: 0 };
+  const defaultTariffState = () => ({ id: "residential_low", tier: 1, c: tariffData.adders.climateKrwPerKwh.value, f: tariffData.adders.fuelAdjustmentKrwPerKwh.value, fd: tariffData.adders.fundRate.value, b: /** @type {1} */ (1), i: /** @type {1} */ (1) });
 
   /** 지금 화면을 링크용 상태로: 기본값과 다른 값만 담는다 */
   function buildShareState() {
@@ -137,9 +142,15 @@ try {
     /** @type {import("../core/share.js").ShareState} */
     const s = { p };
     if (!state.usageIsExample && state.usage.every(Number.isFinite)) s.u = [...state.usage];
-    if (tariff && Number.isFinite(tariff.c) && Number.isFinite(tariff.f)) s.t = tariff;
+    if (!tariff) s.t = { id: "manual", tier: 0, c: 0, f: 0 };
+    else if (Number.isFinite(tariff.c) && Number.isFinite(tariff.f)) {
+      const d = defaultTariffState();
+      const same = tariff.id === d.id && tariff.tier === d.tier && tariff.c === d.c && tariff.f === d.f && tariff.b === 1 && tariff.i === 1;
+      if (!same) s.t = tariff;
+    }
     const m = curve.getMax();
     if (m !== null) s.m = m;
+    s.d = DEFAULTS_GENERATION;
     return s;
   }
 
@@ -291,9 +302,11 @@ try {
       syncUrl();
     } else {
       const notes = [];
-      controller.setValues(r.state.p);
+      const legacy = r.state.d !== DEFAULTS_GENERATION;
+      controller.setValues(legacy ? { ...LEGACY_DEFAULTS, ...r.state.p } : r.state.p);
       if (r.state.u) usagePanel.setUsage(r.state.u);
-      if (r.state.t && !tariffSel.setState(r.state.t)) notes.push("알 수 없는 요금제는 건너뛰었습니다.");
+      const t = r.state.t ?? (legacy ? null : defaultTariffState());
+      if (t && t.id !== "manual" && !tariffSel.setState(t)) notes.push("알 수 없는 요금제는 건너뛰었습니다.");
       if (r.state.m !== undefined) curve.setMax(r.state.m);
       if (r.dropped > 0) notes.push(`읽을 수 없는 값 ${r.dropped}개는 건너뛰었습니다.`);
       applying = false;
@@ -301,6 +314,7 @@ try {
       shareBar.setMessage(["공유 링크에서 설계를 불러왔습니다.", ...notes].join(" "));
     }
   } else {
+    tariffSel.setState(defaultTariffState()); // 기본은 주택용 월별 요금표(React 판과 같음)
     applying = false;
     syncUrl();
   }

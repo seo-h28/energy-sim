@@ -1,6 +1,6 @@
 // @ts-check
-// 민감도 분석(토네이도, spec 5.5): 기준 설계에서 가정을 하나씩 "줄일 때"와 "늘릴 때"로 바꿔 NPV와 회수기간이 얼마나 움직이는지 계산한다.
-// 나머지 가정은 기준 그대로 두고 하나만 바꾼다. 변화 폭(늘릴 때 NPV − 줄일 때 NPV의 절댓값)이 큰 순서로 정렬한다.
+// 가정 영향 분석(토네이도, spec 5.5): 기준 설계에서 가정을 하나씩 "줄일 때"와 "늘릴 때"로 바꿔 순이익과 본전 기간이 얼마나 움직이는지 계산한다.
+// 나머지 가정은 기준 그대로 두고 하나만 바꾼다. 변화 폭(늘릴 때 순이익 − 줄일 때 순이익의 절댓값)이 큰 순서로 정렬한다.
 //
 // 바꾸는 범위는 확률이 아니라 "설정한 범위"다(근거 있는 분포가 없는 값이 많음). 상대 변수는 ±rel(기본 20%),
 // 비율 변수는 절대 폭(효율저하 ±0.5%p, 요금 상승 ±2%p, 할인율 ±3%p, 추가 손실 ±5%p)이며 허용 범위를 넘지 않게 자른다.
@@ -116,7 +116,7 @@ export function buildVariants(base, rel = DEFAULT_RELATIVE_RANGE) {
  * @typedef {Object} Outcome
  * @property {string} text
  * @property {number} [npv]
- * @property {number | null} [payback]  null이면 분석 기간 안에 회수 불가
+ * @property {number | null} [payback]  null이면 분석 기간 안에 본전 못 찾음
  * @property {string[]} [errors]
  */
 
@@ -126,7 +126,7 @@ export function buildVariants(base, rel = DEFAULT_RELATIVE_RANGE) {
  * @property {string} label
  * @property {Outcome} low
  * @property {Outcome} high
- * @property {number} swing  |높을 때 NPV − 낮을 때 NPV| [원]. 계산할 수 없으면 NaN
+ * @property {number} swing  |높을 때 순이익 − 낮을 때 순이익| [원]. 계산할 수 없으면 NaN
  */
 
 /**

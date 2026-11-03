@@ -1,6 +1,6 @@
 // @ts-check
-// 용량 곡선과 추천(spec 5.4, 8차): 설치 용량을 바꿔 가며 NPV·회수기간·자가소비율·자급률을 계산하고,
-// NPV가 가장 큰 용량과 "포화 용량"(이보다 크면 잉여만 늘어나는 용량)을 찾는다.
+// 용량 곡선과 추천(spec 5.4, 8차): 설치 용량을 바꿔 가며 순이익·본전 기간·바로 쓴 비율·태양광이 채운 몫을 계산하고,
+// 순이익이 가장 큰 용량과 "포화 용량"(이보다 크면 남는 전기만 늘어나는 용량)을 찾는다.
 //
 // 탐색은 용량 한 가지 변수의 격자(수십~백 개)라서 한 번에 몇 밀리초면 끝난다. 그래서 Web Worker는 쓰지 않는다
 // (경사각·방위까지 2차원 격자를 만드는 단계에서 필요하면 그때 도입한다).
@@ -34,7 +34,7 @@ export function capacityGrid(maxKwp) {
 
 /**
  * 포화 용량 [kWp] (1년차 기준): 모든 달에서 월 발전량이 낮에 쓰는 전기(사용량 × 낮시간 비중) 이상이 되는 가장 작은 용량.
- * 이보다 크면 자가소비가 더 늘지 않고 잉여만 늘어난다. 용량에 비례하는 발전량으로 달마다 필요한 용량을 구해 가장 큰 값을 쓴다.
+ * 이보다 크면 바로 쓴 전기가 더 늘지 않고 남는 전기만 늘어난다. 용량에 비례하는 발전량으로 달마다 필요한 용량을 구해 가장 큰 값을 쓴다.
  * 발전이 0인 달에 낮 사용이 있으면 포화되지 않으므로 Infinity.
  * @param {Omit<import("./seasonal.js").MonthlyInput, "capacityKwp">} input  dayShare를 포함한 입력
  * @returns {number}
@@ -98,7 +98,7 @@ export function capacityCurve(input, dayShareLow, dayShareHigh, capacities) {
 }
 
 /**
- * NPV가 가장 큰 점. NPV가 모두 0 이하면 "투자하지 않는 편이 낫다"는 뜻이라 null. 같은 값이면 작은 용량을 고른다.
+ * 순이익이 가장 큰 점. 순이익이 모두 0 이하면 "투자하지 않는 편이 낫다"는 뜻이라 null. 같은 값이면 작은 용량을 고른다.
  * @param {CurvePoint[]} points
  * @param {"low" | "base" | "high"} [which]
  * @returns {CurvePoint | null}
